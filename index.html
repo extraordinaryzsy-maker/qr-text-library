@@ -667,9 +667,11 @@ function startOCR(file){
   preview.src=URL.createObjectURL(file);preview.style.display='block';
   progress.style.display='block';document.getElementById('ocrEditor').value='';
   loadTesseract(function(){
-    Tesseract.recognize(file,'chi_sim',{logger:function(m){
-      if(m.status==='recognizing text'){var pct=Math.round(m.progress*100);progress.innerHTML='<span class="spinner"></span>正在识别文字... '+pct+'%'}
-    }}).then(function(r){
+    progress.innerHTML='<span class="spinner"></span>正在加载中文语言包...';
+    Tesseract.createWorker('chi_sim').then(function(w){
+      progress.innerHTML='<span class="spinner"></span>正在识别文字...';
+      return w.recognize(file).then(function(r){w.terminate();return r});
+    }).then(function(r){
       progress.style.display='none';document.getElementById('ocrEditor').value=r.data.text.trim();if(!r.data.text.trim())toast('未识别到文字，请重试或手动输入');
     }).catch(function(e){progress.style.display='none';toast('识别失败: '+e.message)});
   });
@@ -692,15 +694,18 @@ function initTempOCR(){
 var recognition=null,voiceActive=false,voiceFinal='';
 function initTempVoice(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){document.getElementById('btnVoice').style.display='none';return}
-  recognition=new SR();recognition.lang='zh-CN';recognition.interimResults=true;recognition.continuous=true;
   var btn=document.getElementById('voiceBtn');var status=document.getElementById('voiceStatus');var editor=document.getElementById('voiceEditor');
-  recognition.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;editor.value=t;voiceFinal=t};
-  recognition.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')toast('语音识别错误: '+e.error);stopVoiceUI()};
-  recognition.onend=function(){if(voiceActive){try{recognition.start()}catch(e){stopVoiceUI()}}};
   document.getElementById('btnVoice').addEventListener('click',function(){
     tempLastInput='voice';goTo(document.getElementById('page-temp-voice'),'语音输入',true);
   });
+  if(!SR){
+    btn.style.display='none';status.textContent='请使用键盘麦克风按钮进行语音输入';
+    editor.placeholder='点击键盘上的麦克风按钮开始语音输入...';return;
+  }
+  recognition=new SR();recognition.lang='zh-CN';recognition.interimResults=true;recognition.continuous=true;
+  recognition.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;editor.value=t;voiceFinal=t};
+  recognition.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')toast('语音识别错误: '+e.error);stopVoiceUI()};
+  recognition.onend=function(){if(voiceActive){try{recognition.start()}catch(e){stopVoiceUI()}}};
   btn.addEventListener('click',function(){
     if(!voiceActive){voiceActive=true;voiceFinal='';editor.value='';btn.classList.add('recording','voice-pulse');status.textContent='正在聆听... 点击停止';try{recognition.start()}catch(e){toast('语音启动失败');stopVoiceUI()}}
     else{recognition.stop();stopVoiceUI()}
