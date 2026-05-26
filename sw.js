@@ -5,7 +5,7 @@ self.addEventListener('install',function(e){
 });
 self.addEventListener('activate',function(e){
   e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}))}));
-  self.clients.claim();
+  self.clients.claim();/Users/docz/QR4EMR/qr-library/index.html
 });
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET')return;

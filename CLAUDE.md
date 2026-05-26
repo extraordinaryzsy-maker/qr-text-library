@@ -38,3 +38,21 @@ Hardcoded in `getPresets()` function (~line 448). Categories: 术后记录, 入�
 - No server required — all data is client-side
 - File import (FileReader) replaced HTTP fetch for template loading
 - SSH push preferred — HTTPS push may fail due to local proxy
+
+## Security & Privacy
+
+**Intended use:** Clinical text template management tool for licensed medical professionals. Assists in composing standardized EMR entries by providing linguistic templates transferred via QR code optical bridge.
+
+**Architecture guarantees:**
+- Zero server architecture — all data stays in browser `localStorage`, no data leaves the device
+- No patient identity fields stored by design — templates use `___` placeholders, not real patient data
+- Fully offline PWA — functions without network connectivity
+- QR codes encode only the template text visible on screen; no hidden metadata
+
+**User responsibilities:**
+- Do NOT include patient names, medical record numbers, ID numbers, or other PHI in template text
+- Replace all `___` placeholders with actual patient values AFTER entering the EMR
+- Review and verify all text before finalizing in the EMR system
+- Clear browser data when changing devices or leaving shared workstations
+
+**Regulatory classification:** This software is a clinical documentation auxiliary tool. It does NOT perform diagnosis, treatment recommendation, drug dosing, lab analysis, or any form of automated medical decision-making. It is NOT a medical device under NMPA (CFDA) classification.

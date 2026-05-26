@@ -87,6 +87,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 
 .empty-state{text-align:center;color:#555;padding:60px 20px;font-size:15px;line-height:1.8}
 
+.l3-privacy{text-align:center;margin-top:16px;color:#555;font-size:12px;line-height:1.6;max-width:300px;white-space:pre-line}
+
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#7c8aff;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
 </style>
@@ -118,6 +120,22 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
       <button class="btn-outline" id="editItemBtn">编辑文本</button>
       <button class="btn-danger" id="deleteItemBtn">删除</button>
     </div>
+    <div class="l3-privacy" id="l3PrivacyHint"></div>
+  </div>
+</div>
+
+<!-- Disclaimer modal -->
+<div class="modal-overlay" id="disclaimerModal">
+  <div class="modal-content" style="display:flex;flex-direction:column;justify-content:center;text-align:center">
+    <h2 style="font-size:18px;margin-bottom:16px">使用须知</h2>
+    <p style="font-size:14px;color:#aaa;line-height:1.8;text-align:left;margin-bottom:20px">
+      本工具为临床医疗文书模板管理助手，旨在协助执业医师提高电子病历录入效率。<br><br>
+      <strong>请勿在模板中包含患者身份信息</strong>（姓名、病历号、身份证号等）。<br>
+      模板中的占位符（<code>___</code>）应在录入电子病历后替换为实际数值。<br>
+      最终病历内容须由临床医生审核确认后录入医院信息系统。<br><br>
+      本软件不涉及患者隐私数据的采集、传输或云端存储，所有数据仅保存在您的设备本地。
+    </p>
+    <button class="btn" id="disclaimerAccept">已知悉并同意</button>
   </div>
 </div>
 
@@ -262,6 +280,7 @@ function renderL3(catId,itemId){
   var cat=findCat(catId);var item=findItem(cat,itemId);if(!item)return;
   document.getElementById('qrWhite').innerHTML='';
   document.getElementById('l3Meta').textContent=item.text.length+' 字';
+  document.getElementById('l3PrivacyHint').textContent='此二维码含医疗文本，使用后请关闭页面\n请确认模板中的占位符已替换为实际数值后再录入';
   genQR(item.text,Math.min(window.innerWidth*0.8,500),function(c){if(c)document.getElementById('qrWhite').appendChild(c)});
   document.getElementById('editItemBtn').onclick=function(){showItemEditor(catId,itemId)};
   document.getElementById('deleteItemBtn').onclick=function(){
@@ -352,6 +371,9 @@ function openSettings(){
   h+='<div id="exportArea" style="display:none;margin-bottom:8px"><textarea id="exportText" style="width:100%;height:120px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#aaa;font-size:11px;padding:8px;resize:none" readonly></textarea><button class="btn-sm" id="copyExportBtn" style="width:100%;margin-top:4px">复制到剪贴板</button></div>';
   h+='<button class="btn-sm secondary" id="importBtn" style="width:100%;margin-bottom:4px">导入（粘贴JSON）</button>';
   h+='<div id="importArea" style="display:none;margin-bottom:8px"><textarea id="importText" placeholder="在此粘贴 JSON..." style="width:100%;height:120px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#e0e0e0;font-size:12px;padding:8px;resize:none"></textarea><button class="btn-sm" id="doImportBtn" style="width:100%;margin-top:4px">执行导入</button></div>';
+  h+='<div class="section-title">数据安全</div>';
+  h+='<button class="btn-sm danger" id="clearAllDataBtn" style="width:100%">清除全部数据</button>';
+  h+='<div style="font-size:11px;color:#555;margin-top:4px">删除所有分类和子类数据，无法恢复</div>';
 
   settingsContent.innerHTML=h;
   document.getElementById('closeSettings').onclick=function(){settingsModal.classList.remove('open')};
@@ -414,6 +436,10 @@ function openSettings(){
     var txt=document.getElementById('importText').value.trim();if(!txt){toast('请粘贴JSON') ;return}
     try{var d=JSON.parse(txt);if(!d.categories)throw new Error();var existing=load();existing.categories=existing.categories.concat(d.categories);save(existing);renderL1();openSettings();toast('已导入 '+d.categories.length+' 个分类')}catch(e){toast('JSON格式无效')}
   };
+  document.getElementById('clearAllDataBtn').onclick=function(){
+    if(!confirm('确定清除全部数据？\n\n此操作将删除所有分类和子类数据，且无法恢复。建议先导出一份 JSON 备份。'))return;
+    save({categories:[]});renderL1();openSettings();toast('已清除全部数据');
+  };
 
   settingsModal.classList.add('open');
 }
@@ -463,11 +489,11 @@ function showCatItemsEditor(catId){
 
 // ==================== Presets ====================
 function getPresets(){return [
-  {id:'p1',name:'术后记录',order:0,items:[{id:'p1a',name:'术后发热',text:'患者于术后第3天出现发热，体温最高38.7℃，伴畏寒。查体：手术切口敷料干燥，无红肿渗出。复查血常规示白细胞12.3×10⁹/L，中性粒细胞比例82%。考虑术后吸收热可能，建议继续观察，必要时行血培养及切口超声检查。',order:0},{id:'p1b',name:'术后引流通畅',text:'术后引流管通畅，引流量逐日减少，引流液颜色由血性转为淡黄色浆液性。今日引流量约30ml，性状清亮。切口周围无红肿热痛。继续留置引流管观察，预计明日拔除。',order:1}]},
-  {id:'p2',name:'入院记录',order:1,items:[{id:'p2a',name:'入院体格检查',text:'体温36.5℃，脉搏78次/分，呼吸18次/分，血压135/85mmHg。神志清楚，精神可。皮肤巩膜无黄染。双侧瞳孔等大等圆，对光反射灵敏。颈软，无抵抗。双肺呼吸音清，未闻及干湿啰音。心率78次/分，律齐，各瓣膜听诊区未闻及病理性杂音。腹平软，无压痛及反跳痛。',order:0},{id:'p2b',name:'首次病程记录',text:'患者因"反复上腹痛3月，加重1周"入院。既往史：高血压病史5年，规律口服硝苯地平控释片30mg qd，血压控制可。个人史：吸烟20年，每日1包，已戒2年。入院诊断：1.慢性胃炎急性发作 2.高血压病2级。诊疗计划：完善胃镜检查，明确病因；抑酸护胃对症治疗；控制血压。',order:1}]},
-  {id:'p3',name:'手术记录',order:2,items:[{id:'p3a',name:'腹腔镜胆囊切除术',text:'手术经过：全麻达成后，取平卧位，常规消毒铺巾。脐下缘做1cm弧形切口，Veress针穿刺建立气腹，压力12mmHg。置入10mm Trocar及腹腔镜。探查见胆囊约8×3cm大小，充血水肿，与周围组织轻度粘连。分别于剑突下及右锁骨中线肋缘下置入操作孔。仔细分离胆囊三角区，辨认胆囊管及胆囊动脉，分别以Hem-o-lok夹闭后离断。顺行切除胆囊，胆囊床电凝止血，取出胆囊标本。再次探查腹腔，无活动性出血。排出气腹，缝合切口。手术顺利，术中出血约20ml。',order:0}]},
+  {id:'p1',name:'术后记录',order:0,items:[{id:'p1a',name:'术后发热',text:'患者于术后第___天出现发热，体温最高___℃，伴畏寒。查体：手术切口敷料干燥，无红肿渗出。复查血常规示白细胞___×10⁹/L，中性粒细胞比例___%。考虑术后吸收热可能，建议继续观察，必要时行血培养及切口超声检查。',order:0},{id:'p1b',name:'术后引流通畅',text:'术后引流管通畅，引流量逐日减少，引流液颜色由血性转为淡黄色浆液性。今日引流量约___ml，性状清亮。切口周围无红肿热痛。继续留置引流管观察，预计明日拔除。',order:1}]},
+  {id:'p2',name:'入院记录',order:1,items:[{id:'p2a',name:'入院体格检查',text:'体温___℃，脉搏___次/分，呼吸___次/分，血压___/___mmHg。神志清楚，精神可。皮肤巩膜无黄染。双侧瞳孔等大等圆，对光反射灵敏。颈软，无抵抗。双肺呼吸音清，未闻及干湿啰音。心率78次/分，律齐，各瓣膜听诊区未闻及病理性杂音。腹平软，无压痛及反跳痛。',order:0},{id:'p2b',name:'首次病程记录',text:'患者因"反复上腹痛___月，加重___周"入院。既往史：高血压病史___年，规律口服___（具体药物及用量），血压控制可。个人史：吸烟___年，每日___包，已戒___年。入院诊断：1.慢性胃炎急性发作 2.高血压病2级。诊疗计划：完善胃镜检查，明确病因；抑酸护胃对症治疗；控制血压。',order:1}]},
+  {id:'p3',name:'手术记录',order:2,items:[{id:'p3a',name:'腹腔镜胆囊切除术',text:'手术经过：全麻达成后，取平卧位，常规消毒铺巾。脐下缘做1cm弧形切口，Veress针穿刺建立气腹，压力12mmHg。置入10mm Trocar及腹腔镜。探查见胆囊约___×___cm大小，充血水肿，与周围组织轻度粘连。分别于剑突下及右锁骨中线肋缘下置入操作孔。仔细分离胆囊三角区，辨认胆囊管及胆囊动脉，分别以Hem-o-lok夹闭后离断。顺行切除胆囊，胆囊床电凝止血，取出胆囊标本。再次探查腹腔，无活动性出血。排出气腹，缝合切口。手术顺利，术中出血约___ml。',order:0}]},
   {id:'p4',name:'出院小结',order:3,items:[{id:'p4a',name:'出院医嘱模板',text:'出院医嘱：1.注意休息，低盐低脂饮食。2.继续口服药物，具体用法用量见出院带药处方。3.切口保持清洁干燥，每2-3天换药一次。术后7-10天拆线。4.如出现发热、切口红肿疼痛、异常出血等不适，随时来院就诊。5.术后1个月门诊复查。6.如有疑问请联系主管医生。',order:0}]},
-  {id:'p5',name:'会诊记录',order:4,items:[{id:'p5a',name:'心内科会诊',text:'会诊意见：患者心电图示窦性心律，ST-T改变，心肌酶谱正常。心脏超声示左室舒张功能减退，射血分数58%。建议：1.继续控制血压，目标<140/90mmHg。2.加用阿托伐他汀20mg qn。3.非心脏手术前无需特殊心脏干预。4.术中注意监测血压及心率。',order:0}]},
+  {id:'p5',name:'会诊记录',order:4,items:[{id:'p5a',name:'心内科会诊',text:'会诊意见：患者心电图示窦性心律，ST-T改变，心肌酶谱正常。心脏超声示左室舒张功能减退，射血分数___%。建议：1.继续控制血压，目标<140/90mmHg。2.加用阿托伐他汀20mg qn。3.非心脏手术前无需特殊心脏干预。4.术中注意监测血压及心率。',order:0}]},
   {id:'p6',name:'检验报告',order:5,items:[{id:'p6a',name:'血常规解读',text:'血常规回报：白细胞计数正常范围，红细胞及血红蛋白在正常低值，血小板正常。提示无明显感染及出血倾向。建议：1.定期复查血常规。2.如血红蛋白持续偏低，进一步行铁代谢及叶酸、维生素B12检查。',order:0}]},
   {id:'p7',name:'影像报告',order:6,items:[{id:'p7a',name:'胸部CT',text:'胸部CT平扫：双肺纹理清晰，未见明显实质性病变。纵隔居中，未见明显肿大淋巴结。气管及主支气管通畅。双侧胸腔无积液。胸廓对称，胸壁结构未见异常。',order:0}]},
   {id:'p8',name:'病程记录',order:7,items:[{id:'p8a',name:'日常病程记录',text:'今日查房，患者自述症状较前减轻，无特殊不适。查体：生命体征平稳，神志清楚，精神状态可。饮食睡眠正常。切口愈合良好，无红肿渗液。继续目前治疗方案，密切观察病情变化。嘱其多下床活动，预防深静脉血栓。',order:0}]},
@@ -500,6 +526,16 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 
 // ==================== Service Worker ====================
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
+
+// ==================== Disclaimer ====================
+var DISCLAIMER_KEY='qrlib_disclaimer_v1';
+if(!localStorage.getItem(DISCLAIMER_KEY)){
+  document.getElementById('disclaimerModal').classList.add('open');
+  document.getElementById('disclaimerAccept').addEventListener('click',function(){
+    localStorage.setItem(DISCLAIMER_KEY,'1');
+    document.getElementById('disclaimerModal').classList.remove('open');
+  });
+}
 
 // ==================== Init ====================
 renderL1();
