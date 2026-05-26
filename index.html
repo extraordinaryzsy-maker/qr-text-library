@@ -136,8 +136,16 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 
 <!-- L1 -->
 <div class="page active" id="page-l1">
+  <div class="temp-section">
+    <div class="temp-label">临时输入</div>
+    <div class="temp-buttons">
+      <button class="temp-btn" id="btnOcr"><span class="temp-btn-icon">&#x1F4F7;</span>拍照识别</button>
+      <button class="temp-btn" id="btnVoice"><span class="temp-btn-icon">&#x1F3A4;</span>语音输入</button>
+    </div>
+  </div>
+  <div class="temp-label">常用模板</div>
   <div class="cat-grid" id="catGrid"></div>
-  <div class="empty-state" id="l1Empty" style="display:none">还没有分类<br>点击右下角 ⚙ → 载入预设模板</div>
+  <div class="empty-state" id="l1Empty" style="display:none">还没有分类<br>点击右下角 &#x2699; → 载入预设模板</div>
 </div>
 
 <!-- L2 -->
@@ -170,6 +178,45 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
       本软件不涉及患者隐私数据的采集、传输或云端存储，所有数据仅保存在您的设备本地。
     </p>
     <button class="btn" id="disclaimerAccept">已知悉并同意</button>
+  </div>
+</div>
+
+<!-- Temp OCR page -->
+<div class="page" id="page-temp-ocr">
+  <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none">
+  <img class="ocr-preview" id="ocrPreview" alt="Preview">
+  <div class="ocr-progress" id="ocrProgress"><span class="spinner"></span>正在识别文字...</div>
+  <textarea class="temp-editor" id="ocrEditor" placeholder="识别结果将显示在此处，可直接编辑修改..."></textarea>
+  <div class="temp-actions">
+    <button class="btn" id="ocrRetake">重新拍照</button>
+    <button class="btn" id="ocrGenerate" style="background:#7c8aff">生成二维码</button>
+  </div>
+</div>
+
+<!-- Temp voice page -->
+<div class="page" id="page-temp-voice">
+  <div class="voice-control">
+    <button class="voice-btn" id="voiceBtn">&#x1F3A4;</button>
+    <div class="voice-status" id="voiceStatus">点击开始录音</div>
+  </div>
+  <textarea class="temp-editor" id="voiceEditor" placeholder="语音识别结果将显示在此处，可直接编辑修改..."></textarea>
+  <div class="temp-actions">
+    <button class="btn" id="voiceClear">清除重录</button>
+    <button class="btn" id="voiceGenerate" style="background:#7c8aff">生成二维码</button>
+  </div>
+</div>
+
+<!-- Temp QR result page -->
+<div class="page" id="page-temp-qr">
+  <div class="qr-container">
+    <div class="qr-white" id="tempQrWhite"></div>
+    <div class="l3-meta" id="tempQrMeta"></div>
+    <div class="split-nav" id="splitNav" style="display:none">
+      <button class="split-nav-btn" id="splitPrev">&#x25C0;</button>
+      <span class="split-indicator" id="splitIndicator"></span>
+      <button class="split-nav-btn" id="splitNext">&#x25B6;</button>
+    </div>
+    <div class="l3-privacy" id="tempQrHint"></div>
   </div>
 </div>
 
