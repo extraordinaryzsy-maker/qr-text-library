@@ -662,18 +662,47 @@ function loadTesseract(cb){
   s.onerror=function(){tesseractLoading=false;toast('OCR引擎加载失败，请检查网络后重试');document.getElementById('ocrProgress').style.display='none'};
   document.head.appendChild(s);
 }
+function preprocessImage(file,cb){
+  var img=new Image();
+  img.onload=function(){
+    var c=document.createElement('canvas');var max=1800;
+    var w=img.width,h=img.height;
+    if(w>max||h>max){var r=Math.min(max/w,max/h);w=Math.round(w*r);h=Math.round(h*r)}
+    c.width=w;c.height=h;var ctx=c.getContext('2d');
+    // Convert to grayscale, boost contrast
+    ctx.drawImage(img,0,0,w,h);
+    var d=ctx.getImageData(0,0,w,h),px=d.data;
+    for(var i=0;i<px.length;i+=4){
+      var gray=0.299*px[i]+0.587*px[i+1]+0.114*px[i+2];
+      gray=gray<100?gray*0.6:Math.min(255,gray*1.3);
+      px[i]=px[i+1]=px[i+2]=gray;
+    }
+    ctx.putImageData(d,0,0);
+    c.toBlob(function(b){cb(b||file)},'image/jpeg',0.92);
+  };
+  img.onerror=function(){cb(file)};
+  img.src=URL.createObjectURL(file);
+}
+
 function startOCR(file){
   var preview=document.getElementById('ocrPreview');var progress=document.getElementById('ocrProgress');
   preview.src=URL.createObjectURL(file);preview.style.display='block';
   progress.style.display='block';document.getElementById('ocrEditor').value='';
-  loadTesseract(function(){
-    progress.innerHTML='<span class="spinner"></span>正在加载中文语言包...';
-    Tesseract.createWorker('chi_sim').then(function(w){
-      progress.innerHTML='<span class="spinner"></span>正在识别文字...';
-      return w.recognize(file).then(function(r){w.terminate();return r});
-    }).then(function(r){
-      progress.style.display='none';document.getElementById('ocrEditor').value=r.data.text.trim();if(!r.data.text.trim())toast('未识别到文字，请重试或手动输入');
-    }).catch(function(e){progress.style.display='none';toast('识别失败: '+e.message)});
+  preprocessImage(file,function(processed){
+    loadTesseract(function(){
+      progress.innerHTML='<span class="spinner"></span>正在加载中文语言包...';
+      Tesseract.createWorker('chi_sim',1,{langPath:'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0/'}).then(function(w){
+        progress.innerHTML='<span class="spinner"></span>正在识别文字...';
+        return w.recognize(processed).then(function(r){w.terminate();return r});
+      }).then(function(r){
+        progress.style.display='none';var txt=r.data.text.trim();
+        document.getElementById('ocrEditor').value=txt;
+        if(!txt)toast('未识别到文字，请确认照片清晰且包含中文印刷文字');
+      }).catch(function(e){
+        progress.style.display='none';
+        toast('OCR失败，请尝试重新拍照或手动输入文字');
+      });
+    });
   });
 }
 function initTempOCR(){
