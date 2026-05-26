@@ -276,6 +276,7 @@ var isSearchMode=false;
 
 function goTo(page,title,showBack){
   pageL1.classList.remove('active');pageL2.classList.remove('active');pageL3.classList.remove('active');
+  document.getElementById('page-temp-ocr').classList.remove('active');document.getElementById('page-temp-voice').classList.remove('active');document.getElementById('page-temp-qr').classList.remove('active');
   page.classList.add('active');
   navTitle.textContent=title;
   if(showBack){navBack.classList.add('visible')}else{navBack.classList.remove('visible')}
@@ -289,8 +290,13 @@ navBack.addEventListener('click',function(){
     addBtn.classList.add('visible');
   }else if(pageL2.classList.contains('active')){
     if(isSearchMode){isSearchMode=false}
-    renderL1();
-    goTo(pageL1,'QR 文本库',false);
+    renderL1();goTo(pageL1,'QR 文本库',false);
+  }else if(document.getElementById('page-temp-qr').classList.contains('active')){
+    if(tempLastInput==='ocr')goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);
+    else if(tempLastInput==='voice')goTo(document.getElementById('page-temp-voice'),'语音输入',true);
+    else goTo(pageL1,'QR 文本库',false);
+  }else if(document.getElementById('page-temp-ocr').classList.contains('active')||document.getElementById('page-temp-voice').classList.contains('active')){
+    renderL1();goTo(pageL1,'QR 文本库',false);
   }
 });
 
@@ -618,9 +624,103 @@ if(!localStorage.getItem(DISCLAIMER_KEY)){
   });
 }
 
+// ==================== Temp: Split & QR ====================
+function splitText(text,maxLen){maxLen=maxLen||200;var chunks=[];var remain=text;while(remain.length>maxLen){var cut=maxLen;var p=remain.lastIndexOf('。',maxLen);if(p>maxLen*0.5)cut=p+1;else{var s=remain.lastIndexOf('；',maxLen);if(s>maxLen*0.5)cut=s+1;else{var n=remain.lastIndexOf('\n',maxLen);if(n>maxLen*0.5)cut=n+1}}chunks.push(remain.slice(0,cut).trim());remain=remain.slice(cut).trim()}if(remain)chunks.push(remain);return chunks}
+
+var tempChunks=[],tempChunkIdx=0;
+function renderTempQR(chunks){
+  tempChunks=chunks;tempChunkIdx=0;
+  document.getElementById('tempQrHint').textContent='此二维码含医疗文本，使用后请关闭页面';
+  showTempChunk();
+  var splitNav=document.getElementById('splitNav');
+  splitNav.style.display=chunks.length>1?'flex':'none';
+  document.getElementById('splitIndicator').textContent=chunks.length>1?'Part 1 / '+chunks.length:'';
+  document.getElementById('splitPrev').disabled=true;
+  document.getElementById('splitNext').disabled=chunks.length<2;
+}
+function showTempChunk(){
+  var chunk=tempChunks[tempChunkIdx];
+  document.getElementById('tempQrWhite').innerHTML='';
+  document.getElementById('tempQrMeta').textContent=chunk.length+' 字';
+  genQR(chunk,Math.min(window.innerWidth*0.8,500),function(c){if(c)document.getElementById('tempQrWhite').appendChild(c)});
+  if(tempChunks.length>1){
+    document.getElementById('splitIndicator').textContent='Part '+(tempChunkIdx+1)+' / '+tempChunks.length;
+    document.getElementById('splitPrev').disabled=tempChunkIdx===0;
+    document.getElementById('splitNext').disabled=tempChunkIdx>=tempChunks.length-1;
+  }
+}
+
+// ==================== Temp: OCR ====================
+var tesseractLoading=false;
+var tempLastInput=null; // 'ocr' or 'voice'
+function loadTesseract(cb){
+  if(window.Tesseract){cb();return}
+  if(tesseractLoading){var chk=setInterval(function(){if(window.Tesseract){clearInterval(chk);cb()}},200);return}
+  tesseractLoading=true;
+  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  s.onload=function(){tesseractLoading=false;cb()};
+  s.onerror=function(){tesseractLoading=false;toast('OCR引擎加载失败，请检查网络后重试');document.getElementById('ocrProgress').style.display='none'};
+  document.head.appendChild(s);
+}
+function startOCR(file){
+  var preview=document.getElementById('ocrPreview');var progress=document.getElementById('ocrProgress');
+  preview.src=URL.createObjectURL(file);preview.style.display='block';
+  progress.style.display='block';document.getElementById('ocrEditor').value='';
+  loadTesseract(function(){
+    Tesseract.recognize(file,'chi_sim',{logger:function(m){
+      if(m.status==='recognizing text'){var pct=Math.round(m.progress*100);progress.innerHTML='<span class="spinner"></span>正在识别文字... '+pct+'%'}
+    }}).then(function(r){
+      progress.style.display='none';document.getElementById('ocrEditor').value=r.data.text.trim();if(!r.data.text.trim())toast('未识别到文字，请重试或手动输入');
+    }).catch(function(e){progress.style.display='none';toast('识别失败: '+e.message)});
+  });
+}
+function initTempOCR(){
+  var inp=document.getElementById('ocrFileInput');var editor=document.getElementById('ocrEditor');
+  var preview=document.getElementById('ocrPreview');document.getElementById('ocrProgress').style.display='none';editor.value='';
+  document.getElementById('btnOcr').addEventListener('click',function(){
+    tempLastInput='ocr';goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);inp.click();
+  });
+  inp.addEventListener('change',function(){if(this.files&&this.files[0])startOCR(this.files[0])});
+  document.getElementById('ocrRetake').addEventListener('click',function(){inp.value='';inp.click()});
+  document.getElementById('ocrGenerate').addEventListener('click',function(){
+    var txt=editor.value.trim();if(!txt){toast('请先拍照识别或手动输入文字');return}
+    var chunks=splitText(txt);renderTempQR(chunks);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
+  });
+}
+
+// ==================== Temp: Voice ====================
+var recognition=null,voiceActive=false,voiceFinal='';
+function initTempVoice(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('btnVoice').style.display='none';return}
+  recognition=new SR();recognition.lang='zh-CN';recognition.interimResults=true;recognition.continuous=true;
+  var btn=document.getElementById('voiceBtn');var status=document.getElementById('voiceStatus');var editor=document.getElementById('voiceEditor');
+  recognition.onresult=function(e){var t='';for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;editor.value=t;voiceFinal=t};
+  recognition.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')toast('语音识别错误: '+e.error);stopVoiceUI()};
+  recognition.onend=function(){if(voiceActive){try{recognition.start()}catch(e){stopVoiceUI()}}};
+  document.getElementById('btnVoice').addEventListener('click',function(){
+    tempLastInput='voice';goTo(document.getElementById('page-temp-voice'),'语音输入',true);
+  });
+  btn.addEventListener('click',function(){
+    if(!voiceActive){voiceActive=true;voiceFinal='';editor.value='';btn.classList.add('recording','voice-pulse');status.textContent='正在聆听... 点击停止';try{recognition.start()}catch(e){toast('语音启动失败');stopVoiceUI()}}
+    else{recognition.stop();stopVoiceUI()}
+  });
+  document.getElementById('voiceClear').addEventListener('click',function(){editor.value='';voiceFinal='';status.textContent='已清除，点击重新录音'});
+  document.getElementById('voiceGenerate').addEventListener('click',function(){
+    var txt=editor.value.trim();if(!txt){toast('请先录音或手动输入文字');return}
+    var chunks=splitText(txt);renderTempQR(chunks);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
+  });
+}
+function stopVoiceUI(){voiceActive=false;var btn=document.getElementById('voiceBtn');btn.classList.remove('recording','voice-pulse');document.getElementById('voiceStatus').textContent='点击开始录音'}
+
 // ==================== Init ====================
+initTempOCR();initTempVoice();
 renderL1();
 var params=new URLSearchParams(window.location.search);var q=params.get('q');if(q){setTimeout(function(){siriSearch(q)},300)}
+
+// Split nav buttons
+document.getElementById('splitPrev').addEventListener('click',function(){if(tempChunkIdx>0){tempChunkIdx--;showTempChunk()}});
+document.getElementById('splitNext').addEventListener('click',function(){if(tempChunkIdx<tempChunks.length-1){tempChunkIdx++;showTempChunk()}});
 </script>
 </body>
 </html>
