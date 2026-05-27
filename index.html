@@ -163,6 +163,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <div class="l3-meta" id="l3Meta"></div>
     <div class="l3-actions">
       <button class="btn-outline" id="editItemBtn">编辑文本</button>
+      <button class="btn-outline" id="moveItemBtn">移动至其他分类</button>
       <button class="btn-danger" id="deleteItemBtn">删除</button>
     </div>
     <div class="l3-privacy" id="l3PrivacyHint"></div>
@@ -227,6 +228,9 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
       <button class="split-nav-btn" id="splitPrev">&#x25C0;</button>
       <span class="split-indicator" id="splitIndicator"></span>
       <button class="split-nav-btn" id="splitNext">&#x25B6;</button>
+    </div>
+    <div class="l3-actions">
+      <button class="btn-outline" id="tempSaveBtn">保存为模板</button>
     </div>
     <div class="l3-privacy" id="tempQrHint"></div>
   </div>
@@ -361,6 +365,41 @@ document.addEventListener('touchmove',function(e){if(!dragCard)return;e.preventD
 document.addEventListener('touchend',function(){if(!dragCard)return;var isItem=dragCard.classList.contains('item-card');var sel=isItem?'.item-card':'.cat-card';var t=document.querySelector(sel+'.drop-target');if(t){if(isItem){var tid=t.getAttribute('data-iid');swapItems(dragItemCatId,dragItemId,tid)}else{var tid=t.getAttribute('data-cid');swapCategories(dragCatId,tid)}}dragCard.classList.remove('dragging');document.querySelectorAll(sel).forEach(function(c){c.classList.remove('drop-target')});if(ghost){ghost.remove();ghost=null}dragCard=null;dragCatId=null;dragItemId=null;dragItemCatId=null});
 function swapCategories(id1,id2){var d=load();var c1=d.categories.find(function(c){return c.id===id1});var c2=d.categories.find(function(c){return c.id===id2});if(!c1||!c2)return;var t=c1.order;c1.order=c2.order;c2.order=t;save(d);renderL1()}
 function swapItems(catId,id1,id2){var d=load();var cat=d.categories.find(function(c){return c.id===catId});if(!cat)return;var i1=cat.items.find(function(i){return i.id===id1});var i2=cat.items.find(function(i){return i.id===id2});if(!i1||!i2)return;var t=i1.order;i1.order=i2.order;i2.order=t;save(d);renderL2(catId)}
+function showCatPicker(callback,excludeCatId){
+  var data=load();
+  var h='<div class="modal-header"><h2>选择分类</h2><button class="modal-close-btn" id="cpClose">&times;</button></div>';
+  data.categories.forEach(function(cat){if(cat.id!==excludeCatId)h+='<div class="settings-item" id="cpick-'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>'});
+  if(data.categories.filter(function(c){return c.id!==excludeCatId}).length===0)h+='<p style="color:#888;text-align:center;padding:20px">暂无其他分类</p>';
+  h+='<button class="btn-sm" id="cpNewCat" style="width:100%;margin-top:8px">+ 新建分类</button>';
+  document.getElementById('settingsContent').innerHTML=h;
+  document.getElementById('settingsModal').classList.add('open');
+  document.getElementById('cpClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
+  data.categories.forEach(function(cat){if(cat.id!==excludeCatId)document.getElementById('cpick-'+cat.id).onclick=function(){document.getElementById('settingsModal').classList.remove('open');callback(cat.id)}});
+  document.getElementById('cpNewCat').onclick=function(){
+    var name=prompt('输入新分类名称');
+    if(!name||!name.trim())return;
+    var d=load();
+    d.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:d.categories.length,items:[]});
+    save(d);renderL1();
+    document.getElementById('settingsModal').classList.remove('open');
+    callback(d.categories[d.categories.length-1].id);
+  }
+}
+function moveItemToCategory(srcCatId,itemId,tgtCatId){
+  var d=load();
+  var src=d.categories.find(function(c){return c.id===srcCatId});
+  var tgt=d.categories.find(function(c){return c.id===tgtCatId});
+  if(!src||!tgt||srcCatId===tgtCatId)return;
+  var idx=src.items.findIndex(function(i){return i.id===itemId});
+  if(idx<0){toast('项目不存在');return}
+  var item=src.items.splice(idx,1)[0];
+  item.order=tgt.items.length;
+  tgt.items.push(item);save(d);
+  renderL2(srcCatId);
+  currentCatId=tgtCatId;
+  renderL2(tgtCatId);goTo(pageL2,tgt.name,true);addBtn.classList.add('visible');
+  toast('已移动至: '+tgt.name);
+}
 
 // ==================== L2: Items ====================
 function renderL2(catId){
@@ -403,6 +442,7 @@ function renderL3(catId,itemId){
   document.getElementById('l3PrivacyHint').textContent='此二维码含医疗文本，使用后请关闭页面\n请确认模板中的占位符已替换为实际数值后再录入';
   genQR(item.text,Math.min(window.innerWidth*0.8,500),function(c){if(c)document.getElementById('qrWhite').appendChild(c)});
   document.getElementById('editItemBtn').onclick=function(){showItemEditor(catId,itemId)};
+  document.getElementById('moveItemBtn').onclick=function(){showCatPicker(function(tgtCatId){moveItemToCategory(catId,itemId,tgtCatId)},catId)};
   document.getElementById('deleteItemBtn').onclick=function(){
     if(!confirm('确定删除'+item.name+'？'))return;
     cat.items=cat.items.filter(function(i){return i.id!==itemId});
@@ -412,7 +452,7 @@ function renderL3(catId,itemId){
 }
 
 // ==================== Item Editor (inline modal) ====================
-function showItemEditor(catId,itemId){
+function showItemEditor(catId,itemId,prefillText){
   var cat=findCat(catId);var item=itemId?findItem(cat,itemId):null;
   var isNew=!item;
   var title=isNew?'新增子类':'编辑: '+(item?item.name:'');
@@ -421,7 +461,7 @@ function showItemEditor(catId,itemId){
   h+='<div class="editor-label">名称</div>';
   h+='<input type="text" class="editor-input" id="editorName" value="'+escHtml(item?item.name:'')+'" placeholder="子类名称">';
   h+='<div class="editor-label">文本内容</div>';
-  h+='<textarea class="editor-textarea" id="editorText" placeholder="输入文本内容...">'+escHtml(item?item.text:'')+'</textarea>';
+  h+='<textarea class="editor-textarea" id="editorText" placeholder="输入文本内容...">'+escHtml(item?item.text:(prefillText||''))+'</textarea>';
   h+='<div style="margin-top:16px"><button class="btn" id="editorSave">保存</button></div>';
   if(!isNew){h+='<div style="margin-top:8px"><button class="btn-sm danger" id="editorDeleteItem" style="width:100%">删除此子类</button></div>'}
 
@@ -742,9 +782,9 @@ if(!localStorage.getItem(DISCLAIMER_KEY)){
 // ==================== Temp: Split & QR ====================
 function splitText(text,maxLen){maxLen=maxLen||200;var chunks=[];var remain=text;while(remain.length>maxLen){var cut=maxLen;var p=remain.lastIndexOf('。',maxLen);if(p>maxLen*0.5)cut=p+1;else{var s=remain.lastIndexOf('；',maxLen);if(s>maxLen*0.5)cut=s+1;else{var n=remain.lastIndexOf('\n',maxLen);if(n>maxLen*0.5)cut=n+1}}chunks.push(remain.slice(0,cut).trim());remain=remain.slice(cut).trim()}if(remain)chunks.push(remain);return chunks}
 
-var tempChunks=[],tempChunkIdx=0;
-function renderTempQR(chunks){
-  tempChunks=chunks;tempChunkIdx=0;
+var tempChunks=[],tempChunkIdx=0,tempOrigText='';
+function renderTempQR(chunks,fullText){
+  tempChunks=chunks;tempChunkIdx=0;tempOrigText=fullText||'';
   document.getElementById('tempQrHint').textContent='此二维码含医疗文本，使用后请关闭页面';
   showTempChunk();
   var splitNav=document.getElementById('splitNav');
@@ -762,6 +802,28 @@ function showTempChunk(){
     document.getElementById('splitIndicator').textContent='Part '+(tempChunkIdx+1)+' / '+tempChunks.length;
     document.getElementById('splitPrev').disabled=tempChunkIdx===0;
     document.getElementById('splitNext').disabled=tempChunkIdx>=tempChunks.length-1;
+  }
+}
+
+function saveTempToCategory(){
+  if(!tempOrigText){toast('\u65e0\u53ef\u4fdd\u5b58\u7684\u6587\u672c');return}
+  var data=load();
+  var h='<div class="modal-header"><h2>\u4fdd\u5b58\u5230\u5206\u7c7b</h2><button class="modal-close-btn" id="tempPickerClose">&times;</button></div>';
+  data.categories.forEach(function(cat){h+='<div class="settings-item" id="tempsave-'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' \u9879</span></div>'});
+  h+='<button class="btn-sm" id="tempSaveNewCat" style="width:100%;margin-top:8px">+ \u65b0\u5efa\u5206\u7c7b</button>';
+  document.getElementById('settingsContent').innerHTML=h;
+  document.getElementById('settingsModal').classList.add('open');
+  document.getElementById('tempPickerClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
+  data.categories.forEach(function(cat){document.getElementById('tempsave-'+cat.id).onclick=function(){document.getElementById('settingsModal').classList.remove('open');showItemEditor(cat.id,null,tempOrigText)}});
+  document.getElementById('tempSaveNewCat').onclick=function(){
+    var name=prompt('\u8f93\u5165\u65b0\u5206\u7c7b\u540d\u79f0');
+    if(!name||!name.trim())return;
+    var d=load();
+    d.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:d.categories.length,items:[]});
+    save(d);renderL1();
+    document.getElementById('settingsModal').classList.remove('open');
+    var newCat=d.categories[d.categories.length-1];
+    showItemEditor(newCat.id,null,tempOrigText);
   }
 }
 
@@ -835,7 +897,7 @@ function initTempOCR(){
   });
   document.getElementById('ocrGenerate').addEventListener('click',function(){
     var txt=editor.value.trim();if(!txt){toast('\u8bf7\u5148\u7c98\u8d34\u6216\u624b\u52a8\u8f93\u5165\u6587\u5b57');return}
-    var chunks=splitText(txt);renderTempQR(chunks);goTo(document.getElementById('page-temp-qr'),'\u4e34\u65f6\u4e8c\u7ef4\u7801',true);
+    var chunks=splitText(txt);renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'\u4e34\u65f6\u4e8c\u7ef4\u7801',true);
   });
 }
 
@@ -862,7 +924,7 @@ function initTempVoice(){
   document.getElementById('voiceClear').addEventListener('click',function(){editor.value='';voiceFinal='';status.textContent='已清除，点击重新录音'});
   document.getElementById('voiceGenerate').addEventListener('click',function(){
     var txt=editor.value.trim();if(!txt){toast('请先录音或手动输入文字');return}
-    var chunks=splitText(txt);renderTempQR(chunks);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
+    var chunks=splitText(txt);renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
   });
 }
 function stopVoiceUI(){voiceActive=false;var btn=document.getElementById('voiceBtn');btn.classList.remove('recording','voice-pulse');document.getElementById('voiceStatus').textContent='点击开始录音'}
@@ -875,6 +937,8 @@ var params=new URLSearchParams(window.location.search);var q=params.get('q');if(
 // Split nav buttons
 document.getElementById('splitPrev').addEventListener('click',function(){if(tempChunkIdx>0){tempChunkIdx--;showTempChunk()}});
 document.getElementById('splitNext').addEventListener('click',function(){if(tempChunkIdx<tempChunks.length-1){tempChunkIdx++;showTempChunk()}});
+// Temp QR save button
+document.getElementById('tempSaveBtn').addEventListener('click',saveTempToCategory);
 </script>
 </body>
 </html>
