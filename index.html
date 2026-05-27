@@ -652,14 +652,17 @@ function showTempChunk(){
 
 // ==================== Temp: OCR ====================
 var tesseractLoading=false;
-var tempLastInput=null; // 'ocr' or 'voice'
+var tempLastInput=null;
+var TESS_CDN='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js';
+var TESS_LANG='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
+
 function loadTesseract(cb){
   if(window.Tesseract){cb();return}
   if(tesseractLoading){var chk=setInterval(function(){if(window.Tesseract){clearInterval(chk);cb()}},200);return}
   tesseractLoading=true;
-  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  var s=document.createElement('script');s.src=TESS_CDN;
   s.onload=function(){tesseractLoading=false;cb()};
-  s.onerror=function(){tesseractLoading=false;toast('OCR引擎加载失败，请检查网络后重试');document.getElementById('ocrProgress').style.display='none'};
+  s.onerror=function(){tesseractLoading=false;toast('OCR引擎加载失败，请检查网络');document.getElementById('ocrProgress').style.display='none'};
   document.head.appendChild(s);
 }
 function preprocessImage(file,cb){
@@ -686,17 +689,17 @@ function fallbackPreprocess(file,cb){
   img.src=URL.createObjectURL(file);
 }
 
-var OCR_LANG_PATHS=[
-  {url:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/',name:'jsdelivr官方'},
-  {url:'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/',name:'jsdelivr镜像'}
-];
-function tryCreateWorker(idx,progress){
-  idx=idx||0;
-  if(idx>=OCR_LANG_PATHS.length)return Promise.reject(new Error('所有CDN源均无法加载中文语言包'));
-  var src=OCR_LANG_PATHS[idx];
-  if(progress)progress.innerHTML='<span class="spinner"></span>下载中文语言包 ('+src.name+')...';
-  return Tesseract.createWorker('chi_sim',1,{langPath:src.url}).catch(function(){
-    return tryCreateWorker(idx+1,progress);
+var OCR_LANG='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
+var OCR_LANG_FB='https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/';
+
+function diagnoseNetwork(cb){
+  var test=OCR_LANG+'chi_sim.traineddata',start=Date.now();
+  fetch(test,{method:'HEAD',mode:'cors'}).then(function(r){
+    cb({ok:true,status:r.status,time:Date.now()-start});
+  }).catch(function(){
+    fetch(test,{method:'GET',mode:'cors',headers:{Range:'bytes=0-1023'}}).then(function(r){
+      cb({ok:true,status:r.status,time:Date.now()-start,note:'HEAD blocked'});
+    }).catch(function(e){cb({ok:false,err:e.message,time:Date.now()-start})});
   });
 }
 
@@ -705,17 +708,25 @@ function startOCR(file){
   preview.src=URL.createObjectURL(file);preview.style.display='block';
   progress.style.display='block';document.getElementById('ocrEditor').value='';
   preprocessImage(file,function(processed){
-    loadTesseract(function(){
-      tryCreateWorker(0,progress).then(function(w){
-        progress.innerHTML='<span class="spinner"></span>正在识别文字...';
-        return w.recognize(processed).then(function(r){w.terminate();return r});
-      }).then(function(r){
-        progress.style.display='none';var txt=r.data.text.trim();
-        document.getElementById('ocrEditor').value=txt;
-        if(!txt)toast('未识别到文字，请确认照片清晰且包含中文印刷文字');
-      }).catch(function(e){
-        progress.style.display='none';
-        toast('OCR失败，请尝试重新拍照或手动输入文字');
+    progress.innerHTML='<span class="spinner"></span>检测CDN连通性...';
+    diagnoseNetwork(function(d){
+      if(!d.ok){progress.style.display='none';toast('CDN不可达: '+d.err);return}
+      progress.innerHTML='<span class="spinner"></span>CDN OK ('+d.time+'ms)，加载引擎...';
+      loadTesseract(function(){
+        progress.innerHTML='<span class="spinner"></span>下载中文语言包...';
+        function doOCR(langPath,onFail){
+          Tesseract.recognize(processed,'chi_sim',{langPath:langPath}).then(function(r){
+            progress.style.display='none';var t=r.data.text.trim();
+            document.getElementById('ocrEditor').value=t;
+            if(!t)toast('未识别到文字，请确认照片清晰且包含中文印刷文字');
+          }).catch(function(e){onFail()});
+        }
+        doOCR(OCR_LANG,function(){
+          progress.innerHTML='<span class="spinner"></span>主CDN失败，尝试备用...';
+          doOCR(OCR_LANG_FB,function(){
+            progress.style.display='none';toast('两个CDN均失败，请检查网络');
+          });
+        });
       });
     });
   });
