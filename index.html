@@ -102,7 +102,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 
 /* OCR preview & progress */
 .ocr-preview{width:100%;max-height:200px;object-fit:contain;border-radius:12px;margin-bottom:12px;display:none}
-.ocr-progress{text-align:center;color:#7c8aff;font-size:14px;padding:20px;display:none}
+.ocr-progress{text-align:center;color:#7c8aff;font-size:14px;padding:10px 20px}
+.ocr-hint{text-align:center;color:#888;font-size:13px;line-height:1.7;padding:8px 16px;margin-bottom:8px;background:#1a1a2e;border-radius:10px}
 .ocr-progress .spinner{display:inline-block;width:24px;height:24px;border:3px solid #333;border-top-color:#7c8aff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -185,10 +186,12 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 <div class="page" id="page-temp-ocr">
   <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none">
   <img class="ocr-preview" id="ocrPreview" alt="Preview">
-  <div class="ocr-progress" id="ocrProgress"><span class="spinner"></span>正在识别文字...</div>
-  <textarea class="temp-editor" id="ocrEditor" placeholder="识别结果将显示在此处，可直接编辑修改..."></textarea>
+  <div class="ocr-hint" id="ocrHint">长按照片 &#x2192; 选择文本 &#x2192; 复制<br>然后点击下方「粘贴」按钮</div>
+  <div class="ocr-progress" id="ocrProgress" style="display:none"><span class="spinner"></span><span id="ocrProgressText">正在自动识别...</span></div>
+  <textarea class="temp-editor" id="ocrEditor" placeholder="在此粘贴识别文字，或等待自动识别结果..."></textarea>
   <div class="temp-actions">
-    <button class="btn" id="ocrRetake">重新拍照</button>
+    <button class="btn" id="ocrPaste" style="background:#3a3a5a">粘贴</button>
+    <button class="btn" id="ocrRetake" style="background:#3a3a5a">重拍</button>
     <button class="btn" id="ocrGenerate" style="background:#7c8aff">生成二维码</button>
   </div>
 </div>
@@ -689,56 +692,45 @@ function fallbackPreprocess(file,cb){
   img.src=URL.createObjectURL(file);
 }
 
-var OCR_LANG='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
-var OCR_LANG_FB='https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/';
-
-function diagnoseNetwork(cb){
-  var test=OCR_LANG+'chi_sim.traineddata',start=Date.now();
-  fetch(test,{method:'HEAD',mode:'cors'}).then(function(r){
-    cb({ok:true,status:r.status,time:Date.now()-start});
-  }).catch(function(){
-    fetch(test,{method:'GET',mode:'cors',headers:{Range:'bytes=0-1023'}}).then(function(r){
-      cb({ok:true,status:r.status,time:Date.now()-start,note:'HEAD blocked'});
-    }).catch(function(e){cb({ok:false,err:e.message,time:Date.now()-start})});
-  });
-}
-
-function startOCR(file){
-  var preview=document.getElementById('ocrPreview');var progress=document.getElementById('ocrProgress');
-  preview.src=URL.createObjectURL(file);preview.style.display='block';
-  progress.style.display='block';document.getElementById('ocrEditor').value='';
-  preprocessImage(file,function(processed){
-    progress.innerHTML='<span class="spinner"></span>检测CDN连通性...';
-    diagnoseNetwork(function(d){
-      if(!d.ok){progress.style.display='none';toast('CDN不可达: '+d.err);return}
-      progress.innerHTML='<span class="spinner"></span>CDN OK ('+d.time+'ms)，加载引擎...';
-      loadTesseract(function(){
-        progress.innerHTML='<span class="spinner"></span>下载中文语言包...';
-        function doOCR(langPath,onFail){
-          Tesseract.recognize(processed,'chi_sim',{langPath:langPath}).then(function(r){
-            progress.style.display='none';var t=r.data.text.trim();
-            document.getElementById('ocrEditor').value=t;
-            if(!t)toast('未识别到文字，请确认照片清晰且包含中文印刷文字');
-          }).catch(function(e){onFail()});
-        }
-        doOCR(OCR_LANG,function(){
-          progress.innerHTML='<span class="spinner"></span>主CDN失败，尝试备用...';
-          doOCR(OCR_LANG_FB,function(){
-            progress.style.display='none';toast('两个CDN均失败，请检查网络');
-          });
-        });
-      });
+function tryTesseractBG(processed,editor,progress){
+  var langPath='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
+  progress.style.display='block';document.getElementById('ocrProgressText').textContent='正在自动识别...';
+  loadTesseract(function(){
+    Tesseract.recognize(processed,'chi_sim',{langPath:langPath}).then(function(r){
+      var t=r.data.text.trim();
+      if(t&&t.length>1){editor.value=t;progress.style.display='none';toast('自动识别完成')}
+      else{progress.style.display='none'}
+    }).catch(function(){
+      Tesseract.recognize(processed,'chi_sim',{langPath:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/'}).then(function(r){
+        var t=r.data.text.trim();
+        if(t&&t.length>1){editor.value=t;progress.style.display='none';toast('自动识别完成')}
+        else{progress.style.display='none'}
+      }).catch(function(){progress.style.display='none'});
     });
   });
 }
+function startOCR(file){
+  var preview=document.getElementById('ocrPreview');var editor=document.getElementById('ocrEditor');
+  var progress=document.getElementById('ocrProgress');var hint=document.getElementById('ocrHint');
+  preview.src=URL.createObjectURL(file);preview.style.display='block';
+  hint.style.display='block';editor.value='';editor.placeholder='在此粘贴识别文字，或等待自动识别结果...';
+  progress.style.display='none';
+  preprocessImage(file,function(processed){tryTesseractBG(processed,editor,progress)});
+}
 function initTempOCR(){
   var inp=document.getElementById('ocrFileInput');var editor=document.getElementById('ocrEditor');
-  var preview=document.getElementById('ocrPreview');document.getElementById('ocrProgress').style.display='none';editor.value='';
+  var preview=document.getElementById('ocrPreview');var hint=document.getElementById('ocrHint');
+  var progress=document.getElementById('ocrProgress');progress.style.display='none';
   document.getElementById('btnOcr').addEventListener('click',function(){
     tempLastInput='ocr';goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);inp.click();
   });
   inp.addEventListener('change',function(){if(this.files&&this.files[0])startOCR(this.files[0])});
   document.getElementById('ocrRetake').addEventListener('click',function(){inp.value='';inp.click()});
+  document.getElementById('ocrPaste').addEventListener('click',function(){
+    navigator.clipboard.readText().then(function(t){
+      if(t.trim()){editor.value=t;toast('已粘贴 '+t.length+' 字')}else{toast('剪贴板为空')}
+    }).catch(function(){toast('无法访问剪贴板，请手动长按粘贴')});
+  });
   document.getElementById('ocrGenerate').addEventListener('click',function(){
     var txt=editor.value.trim();if(!txt){toast('请先拍照识别或手动输入文字');return}
     var chunks=splitText(txt);renderTempQR(chunks);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
