@@ -684,14 +684,26 @@ function preprocessImage(file,cb){
   img.src=URL.createObjectURL(file);
 }
 
+var OCR_LANG_PATHS=[
+  'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/',
+  'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/'
+];
+function tryCreateWorker(idx){
+  idx=idx||0;
+  if(idx>=OCR_LANG_PATHS.length)return Promise.reject(new Error('所有CDN源均无法加载中文语言包'));
+  return Tesseract.createWorker('chi_sim',1,{langPath:OCR_LANG_PATHS[idx]}).catch(function(){
+    return tryCreateWorker(idx+1);
+  });
+}
+
 function startOCR(file){
   var preview=document.getElementById('ocrPreview');var progress=document.getElementById('ocrProgress');
   preview.src=URL.createObjectURL(file);preview.style.display='block';
   progress.style.display='block';document.getElementById('ocrEditor').value='';
   preprocessImage(file,function(processed){
     loadTesseract(function(){
-      progress.innerHTML='<span class="spinner"></span>正在加载中文语言包...';
-      Tesseract.createWorker('chi_sim',1,{langPath:'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0/'}).then(function(w){
+      progress.innerHTML='<span class="spinner"></span>正在下载中文语言包...';
+      tryCreateWorker().then(function(w){
         progress.innerHTML='<span class="spinner"></span>正在识别文字...';
         return w.recognize(processed).then(function(r){w.terminate();return r});
       }).then(function(r){
