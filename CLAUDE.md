@@ -14,6 +14,17 @@ Clinical medical text QR-code library PWA. Stores structured text templates (pos
 - **templates.json** — Reference copy of preset data (not used at runtime; presets are inline).
 - **Data** — All user data stored in `localStorage` key `qrlib_v2`. No server-side storage.
 
+## Photo text recognition
+
+No automatic OCR. Flow relies on system-level text recognition:
+
+1. Camera or photo library captures an image → displayed on `<canvas>`
+2. iOS Live Text: long-press photo → select text → copy (on-device ML, works offline)
+3. Android: similar system-level text selection on images
+4. Paste into editor → edit → generate QR code
+
+Tesseract.js was removed in v21 after proving unreliable for Chinese OCR on iOS Safari (WASM/LSTM inference issues). iOS Live Text produces substantially better results with zero dependencies.
+
 ## How to update & deploy
 
 1. Edit `index.html` (or `sw.js`, `templates.json`)
