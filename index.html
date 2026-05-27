@@ -704,31 +704,20 @@ var tesseractLoading=false,tesseractLoaded=false;
 var ocrCancelFlag=false;
 var tempLastInput=null;
 
-// CDN: baomitu (China) -> jsdelivr -> unpkg -> bootcdn
-var TESS_CDNS=[
-  'https://lib.baomitu.com/tesseract.js/4.1.1/tesseract.min.js',
-  'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js',
-  'https://unpkg.com/tesseract.js@4/dist/tesseract.min.js',
-  'https://cdn.bootcdn.net/ajax/libs/tesseract.js/4.1.1/tesseract.min.js'
-];
-// Official tessdata CDN (GitHub Pages, globally accessible)
-var TESSDATA_FAST='https://tessdata.projectnaptha.com/4.0.0_fast/';
-var TESSDATA_FULL='https://tessdata.projectnaptha.com/4.0.0/';
+// Self-hosted: zero external dependency
+var TESS_LOCAL='./lib/tesseract.min.js';
+var TESSDATA_LOCAL='./tessdata/';
 
 function loadTesseract(cb,onFail,onStatus){
   if(tesseractLoaded&&window.Tesseract&&typeof Tesseract.createWorker==='function'){cb();return}
   if(tesseractLoading){var intv=setInterval(function(){if(tesseractLoaded){clearInterval(intv);cb()}},200);return}
-  tesseractLoading=true;var idx=0;
-  function tryNext(){
-    if(idx>=TESS_CDNS.length){tesseractLoading=false;onFail&&onFail();return}
-    if(onStatus)onStatus('\u52a0\u8f7d\u5f15\u64ce '+(idx+1)+'/'+TESS_CDNS.length);
-    var s=document.createElement('script');s.src=TESS_CDNS[idx];
-    var to=setTimeout(function(){idx++;s.onload=s.onerror=null;if(s.parentNode)s.parentNode.removeChild(s);tryNext()},5000);
-    s.onload=function(){clearTimeout(to);tesseractLoading=false;tesseractLoaded=true;cb()};
-    s.onerror=function(){clearTimeout(to);idx++;tryNext()};
-    document.head.appendChild(s);
-  }
-  tryNext();
+  tesseractLoading=true;
+  if(onStatus)onStatus('\u52a0\u8f7d\u8bc6\u522b\u5f15\u64ce...');
+  var s=document.createElement('script');s.src=TESS_LOCAL;
+  var to=setTimeout(function(){tesseractLoading=false;onFail&&onFail()},10000);
+  s.onload=function(){clearTimeout(to);tesseractLoading=false;tesseractLoaded=true;cb()};
+  s.onerror=function(){clearTimeout(to);tesseractLoading=false;onFail&&onFail()};
+  document.head.appendChild(s);
 }
 
 // -- Image preprocessing: grayscale + contrast + Otsu binarization + sharpen --
@@ -768,22 +757,24 @@ function cleanOCRText(text){
 }
 function hasCJK(text){return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text)}
 
-function tryOCR(canvas,editor,progress,status,useFast){
-  if(ocrCancelFlag)return;if(useFast===undefined)useFast=true;
-  var langPath=useFast?TESSDATA_FAST:TESSDATA_FULL;
-  if(status)status.textContent=useFast?'\u4e0b\u8f7d\u8bed\u8a00\u5305 (fast)...':'\u4e0b\u8f7d\u8bed\u8a00\u5305 (full)...';
+function tryOCR(canvas,editor,progress,status){
+  if(ocrCancelFlag)return;
+  if(status)status.textContent='\u52a0\u8f7d\u8bed\u8a00\u5305...';
   var processed;try{processed=preprocessImage(canvas)}catch(e){processed=canvas}
-  var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},25000);
-  var fallback=function(){if(useFast){tryOCR(canvas,editor,progress,status,false)}else{clearTimeout(timer);progress.style.display='none';showManualFallbackHint()}};
-  Tesseract.createWorker('chi_sim',1,{langPath:langPath}).then(function(w){
+  var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},30000);
+  Tesseract.createWorker('chi_sim',1,{
+    workerPath:'./lib/worker.min.js',
+    corePath:'./lib/',
+    langPath:TESSDATA_LOCAL
+  }).then(function(w){
     if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
     w.recognize(processed).then(function(r){clearTimeout(timer);if(ocrCancelFlag){w.terminate();return}
       var txt=cleanOCRText(r.data.text);
       if(txt&&txt.length>2&&hasCJK(txt)){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210 '+txt.length+'\u5b57')}
       else if(txt&&txt.length>2){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210\uff0c\u672a\u68c0\u6d4b\u5230\u4e2d\u6587')}
-      else{fallback()}w.terminate();
-    }).catch(function(){clearTimeout(timer);w.terminate();fallback()});
-  }).catch(function(){clearTimeout(timer);fallback()});
+      else{progress.style.display='none';showManualFallbackHint()}w.terminate();
+    }).catch(function(e){clearTimeout(timer);w.terminate();progress.style.display='none';showManualFallbackHint()});
+  }).catch(function(e){clearTimeout(timer);progress.style.display='none';showManualFallbackHint()});
 }
 
 function showManualFallbackHint(){
