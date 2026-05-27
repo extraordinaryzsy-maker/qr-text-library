@@ -335,12 +335,22 @@ function renderL1(){
 function showL1AddPicker(){
   var data=load();
   var h='<div class="modal-header"><h2>选择分类</h2><button class="modal-close-btn" id="l1PickerClose">&times;</button></div>';
-  if(data.categories.length===0){h+='<p style="color:#888;text-align:center;padding:20px">暂无分类，请先在设置中创建</p>'}
-  else{data.categories.forEach(function(cat){h+='<div class="settings-item" id="l1pick-'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>'})}
+  data.categories.forEach(function(cat){h+='<div class="settings-item" id="l1pick-'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>'});
+  h+='<button class="btn-sm" id="l1NewCat" style="width:100%;margin-top:8px">+ 新建分类</button>';
   document.getElementById('settingsContent').innerHTML=h;
   document.getElementById('settingsModal').classList.add('open');
   document.getElementById('l1PickerClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
-  data.categories.forEach(function(cat){document.getElementById('l1pick-'+cat.id).onclick=function(){document.getElementById('settingsModal').classList.remove('open');showItemEditor(cat.id,null)}})
+  data.categories.forEach(function(cat){document.getElementById('l1pick-'+cat.id).onclick=function(){document.getElementById('settingsModal').classList.remove('open');showItemEditor(cat.id,null)}});
+  document.getElementById('l1NewCat').onclick=function(){
+    var name=prompt('输入新分类名称');
+    if(!name||!name.trim())return;
+    var d=load();
+    d.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:d.categories.length,items:[]});
+    save(d);renderL1();
+    document.getElementById('settingsModal').classList.remove('open');
+    var newCat=d.categories[d.categories.length-1];
+    showItemEditor(newCat.id,null);
+  }
 }
 
 // Drag-to-swap
