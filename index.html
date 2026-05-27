@@ -660,22 +660,16 @@ var tesseractLoading=false,tesseractLoaded=false;
 var ocrCancelFlag=false;
 var tempLastInput=null;
 
+// CDN: baomitu (China) -> jsdelivr -> unpkg -> bootcdn
 var TESS_CDNS=[
-  'https://raw.githubusercontent.com/naptha/tesseract.js/v4.1.1/dist/tesseract.min.js',
+  'https://lib.baomitu.com/tesseract.js/4.1.1/tesseract.min.js',
   'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js',
-  'https://unpkg.com/tesseract.js@4/dist/tesseract.min.js'
+  'https://unpkg.com/tesseract.js@4/dist/tesseract.min.js',
+  'https://cdn.bootcdn.net/ajax/libs/tesseract.js/4.1.1/tesseract.min.js'
 ];
-var TESSDATA_URLS=[
-  'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0/',
-  'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_fast/'
-];
-
-// Quick network pre-check (2s timeout) - skip OCR if no CDN reachable
-function precheckNetwork(cb){
-  var ctrl=new AbortController();
-  var t=setTimeout(function(){ctrl.abort();cb(false)},2000);
-  fetch('https://raw.githubusercontent.com/naptha/tesseract.js/v4.1.1/package.json',{method:'HEAD',signal:ctrl.signal,cache:'no-store'}).then(function(r){clearTimeout(t);cb(r.ok)}).catch(function(){clearTimeout(t);cb(false)});
-}
+// Official tessdata CDN (GitHub Pages, globally accessible)
+var TESSDATA_FAST='https://tessdata.projectnaptha.com/4.0.0_fast/';
+var TESSDATA_FULL='https://tessdata.projectnaptha.com/4.0.0/';
 
 function loadTesseract(cb,onFail,onStatus){
   if(tesseractLoaded&&window.Tesseract&&typeof Tesseract.createWorker==='function'){cb();return}
@@ -730,13 +724,13 @@ function cleanOCRText(text){
 }
 function hasCJK(text){return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text)}
 
-function tryOCR(canvas,editor,progress,status,langIdx){
-  if(ocrCancelFlag)return;if(langIdx===undefined)langIdx=0;
-  var langPath=TESSDATA_URLS[langIdx];
-  if(status)status.textContent='\u4e0b\u8f7d\u8bed\u8a00\u5305 '+(langIdx+1)+'/'+TESSDATA_URLS.length;
+function tryOCR(canvas,editor,progress,status,useFast){
+  if(ocrCancelFlag)return;if(useFast===undefined)useFast=true;
+  var langPath=useFast?TESSDATA_FAST:TESSDATA_FULL;
+  if(status)status.textContent=useFast?'\u4e0b\u8f7d\u8bed\u8a00\u5305 (fast)...':'\u4e0b\u8f7d\u8bed\u8a00\u5305 (full)...';
   var processed;try{processed=preprocessImage(canvas)}catch(e){processed=canvas}
   var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},25000);
-  var fallback=function(){if(langIdx+1<TESSDATA_URLS.length){tryOCR(canvas,editor,progress,status,langIdx+1)}else{clearTimeout(timer);progress.style.display='none';showManualFallbackHint()}};
+  var fallback=function(){if(useFast){tryOCR(canvas,editor,progress,status,false)}else{clearTimeout(timer);progress.style.display='none';showManualFallbackHint()}};
   Tesseract.createWorker('chi_sim',1,{langPath:langPath}).then(function(w){
     if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
     w.recognize(processed).then(function(r){clearTimeout(timer);if(ocrCancelFlag){w.terminate();return}
@@ -789,18 +783,12 @@ function startOCR(file){
     hint.style.display='block';hint.innerHTML='\u957f\u6309\u7167\u7247 \u2192 \u9009\u62e9\u6587\u672c \u2192 \u590d\u5236<br>\u7136\u540e\u70b9\u51fb\u4e0b\u65b9\u300c\u7c98\u8d34\u300d\u6309\u94ae';
     hint.style.color='#888';hint.style.background='#1a1a2e';
     editor.value='';editor.placeholder='\u81ea\u52a8\u8bc6\u522b\u4e2d\uff0c\u6216\u624b\u52a8\u7c98\u8d34...';
-    progress.style.display='block';status.textContent='\u68c0\u6d4b\u7f51\u7edc...';
-    // Network pre-check first
-    precheckNetwork(function(reachable){
+    progress.style.display='block';status.textContent='\u6b63\u5728\u52a0\u8f7d...';
+    loadTesseract(function(){
       if(ocrCancelFlag)return;
-      if(!reachable){progress.style.display='none';showManualFallbackHint();toast('\u7f51\u7edc\u4e0d\u53ef\u7528\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b');return}
-      status.textContent='\u6b63\u5728\u52a0\u8f7d...';
-      loadTesseract(function(){
-        if(ocrCancelFlag)return;
-        tryOCR(c,editor,progress,status);
-      },function(){progress.style.display='none';showManualFallbackHint();toast('\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b')},
-      function(s){if(!ocrCancelFlag)status.textContent=s});
-    });
+      tryOCR(c,editor,progress,status);
+    },function(){progress.style.display='none';showManualFallbackHint();toast('\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b')},
+    function(s){if(!ocrCancelFlag)status.textContent=s});
   });
 }
 
