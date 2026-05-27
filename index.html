@@ -764,7 +764,7 @@ function tryOCR(canvas,editor,progress,status){
   var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},30000);
   Tesseract.createWorker('chi_sim',1,{
     workerPath:'./lib/worker.min.js',
-    corePath:'./lib/',
+    corePath:'./lib/tesseract-core.wasm.js',
     langPath:TESSDATA_LOCAL
   }).then(function(w){
     if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
