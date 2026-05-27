@@ -706,7 +706,6 @@ var tempLastInput=null;
 
 // Self-hosted: zero external dependency
 var TESS_LOCAL='./lib/tesseract.min.js';
-var TESSDATA_LOCAL='./tessdata/';
 
 function loadTesseract(cb,onFail,onStatus){
   if(tesseractLoaded&&window.Tesseract&&typeof Tesseract.createWorker==='function'){cb();return}
@@ -778,8 +777,9 @@ function tryOCR(canvas,editor,progress,status){
   var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},60000);
   Tesseract.createWorker('chi_sim',1,{
     workerPath:'./lib/worker.min.js',
-    corePath:'./lib/',
-    langPath:TESSDATA_LOCAL
+    workerBlobURL:false,
+    corePath:'./',
+    langPath:'../tessdata/'
   }).then(function(w){
     if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
     w.recognize(processed).then(function(r){clearTimeout(timer);if(ocrCancelFlag){w.terminate();return}
