@@ -101,7 +101,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 .temp-btn-icon{font-size:32px;display:block;margin-bottom:6px}
 
 /* OCR preview & progress */
-.ocr-preview{width:100%;max-height:200px;object-fit:contain;border-radius:12px;margin-bottom:12px;display:none}
+.ocr-preview{width:100%;max-height:300px;object-fit:contain;border-radius:12px;margin-bottom:12px;display:none;background:#000}
 .ocr-progress{text-align:center;color:#7c8aff;font-size:14px;padding:10px 20px}
 .ocr-hint{text-align:center;color:#888;font-size:13px;line-height:1.7;padding:8px 16px;margin-bottom:8px;background:#1a1a2e;border-radius:10px}
 .ocr-progress .spinner{display:inline-block;width:24px;height:24px;border:3px solid #333;border-top-color:#7c8aff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
@@ -185,13 +185,15 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 <!-- Temp OCR page -->
 <div class="page" id="page-temp-ocr">
   <input type="file" id="ocrFileInput" accept="image/*" capture="environment" style="display:none">
-  <img class="ocr-preview" id="ocrPreview" alt="Preview">
+  <input type="file" id="ocrLibraryInput" accept="image/*" style="display:none">
+  <canvas class="ocr-preview" id="ocrPreview"></canvas>
   <div class="ocr-hint" id="ocrHint">长按照片 &#x2192; 选择文本 &#x2192; 复制<br>然后点击下方「粘贴」按钮</div>
   <div class="ocr-progress" id="ocrProgress" style="display:none"><span class="spinner"></span><span id="ocrProgressText">正在自动识别...</span></div>
   <textarea class="temp-editor" id="ocrEditor" placeholder="在此粘贴识别文字，或等待自动识别结果..."></textarea>
   <div class="temp-actions">
     <button class="btn" id="ocrPaste" style="background:#3a3a5a">粘贴</button>
     <button class="btn" id="ocrRetake" style="background:#3a3a5a">重拍</button>
+    <button class="btn" id="ocrLibrary" style="background:#3a3a5a">相册</button>
     <button class="btn" id="ocrGenerate" style="background:#7c8aff">生成二维码</button>
   </div>
 </div>
@@ -654,78 +656,103 @@ function showTempChunk(){
 }
 
 // ==================== Temp: OCR ====================
-var tesseractLoading=false;
+var tesseractLoading=false,tesseractLoaded=false;
 var tempLastInput=null;
-var TESS_CDN='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js';
-var TESS_LANG='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
+var TESS_V5_CDN='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+var TESS_V5_FB='https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
 
-function loadTesseract(cb){
-  if(window.Tesseract){cb();return}
-  if(tesseractLoading){var chk=setInterval(function(){if(window.Tesseract){clearInterval(chk);cb()}},200);return}
+function loadTesseractV5(cb,onFail){
+  if(tesseractLoaded&&window.Tesseract&&window.Tesseract.createWorker){cb();return}
+  if(tesseractLoading){var chk=setInterval(function(){if(tesseractLoaded){clearInterval(chk);cb()}},200);return}
   tesseractLoading=true;
-  var s=document.createElement('script');s.src=TESS_CDN;
-  s.onload=function(){tesseractLoading=false;cb()};
-  s.onerror=function(){tesseractLoading=false;toast('OCR引擎加载失败，请检查网络');document.getElementById('ocrProgress').style.display='none'};
-  document.head.appendChild(s);
+  function tryLoad(url,fallback){
+    var s=document.createElement('script');s.src=url;
+    s.onload=function(){tesseractLoading=false;tesseractLoaded=true;cb()};
+    s.onerror=function(){if(fallback){tryLoad(fallback)}else{tesseractLoading=false;onFail&&onFail()}};
+    document.head.appendChild(s);
+  }
+  tryLoad(TESS_V5_CDN,TESS_V5_FB);
 }
-function preprocessImage(file,cb){
-  // Use createImageBitmap to respect EXIF orientation (critical for iPhone photos)
+
+function showPhotoOnCanvas(file,canvas,cb){
   if(window.createImageBitmap){
-    createImageBitmap(file,{imageOrientation:'from-image',resizeWidth:1800,resizeHeight:1800,resizeQuality:'high'}).then(function(bmp){
-      var c=document.createElement('canvas');c.width=bmp.width;c.height=bmp.height;
-      var ctx=c.getContext('2d');ctx.drawImage(bmp,0,0);
-      c.toBlob(function(b){cb(b||file)},'image/jpeg',0.92);
-    }).catch(function(){fallbackPreprocess(file,cb)});
-  }else{fallbackPreprocess(file,cb)}
+    createImageBitmap(file,{imageOrientation:'from-image'}).then(function(bmp){
+      var maxW=Math.min(window.innerWidth-32,400);
+      var maxH=320;var scale=Math.min(maxW/bmp.width,maxH/bmp.height,1);
+      canvas.width=Math.round(bmp.width*scale);canvas.height=Math.round(bmp.height*scale);
+      var ctx=canvas.getContext('2d');
+      ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(bmp,0,0,canvas.width,canvas.height);
+      canvas.style.display='block';if(cb)cb(canvas);
+    }).catch(function(){fallbackShowPhoto(file,canvas,cb)});
+  }else{fallbackShowPhoto(file,canvas,cb)}
 }
-function fallbackPreprocess(file,cb){
+function fallbackShowPhoto(file,canvas,cb){
   var img=new Image();
   img.onload=function(){
-    var c=document.createElement('canvas');var max=1800;
-    var w=img.width,h=img.height;
-    if(w>max||h>max){var r=Math.min(max/w,max/h);w=Math.round(w*r);h=Math.round(h*r)}
-    c.width=w;c.height=h;var ctx=c.getContext('2d');
-    ctx.drawImage(img,0,0,w,h);
-    c.toBlob(function(b){cb(b||file)},'image/jpeg',0.92);
+    var maxW=Math.min(window.innerWidth-32,400);
+    var maxH=320;var scale=Math.min(maxW/img.width,maxH/img.height,1);
+    canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+    var ctx=canvas.getContext('2d');
+    ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    canvas.style.display='block';if(cb)cb(canvas);
   };
-  img.onerror=function(){cb(file)};
+  img.onerror=function(){toast('图片加载失败')};
   img.src=URL.createObjectURL(file);
 }
 
-function tryTesseractBG(processed,editor,progress){
+function tryTesseractBG(canvas,editor,progress){
   var langPath='https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/';
   progress.style.display='block';document.getElementById('ocrProgressText').textContent='正在自动识别...';
-  loadTesseract(function(){
-    Tesseract.recognize(processed,'chi_sim',{langPath:langPath}).then(function(r){
-      var t=r.data.text.trim();
-      if(t&&t.length>1){editor.value=t;progress.style.display='none';toast('自动识别完成')}
-      else{progress.style.display='none'}
-    }).catch(function(){
-      Tesseract.recognize(processed,'chi_sim',{langPath:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/'}).then(function(r){
+  loadTesseractV5(function(){
+    Tesseract.createWorker('chi_sim',1,{langPath:langPath}).then(function(w){
+      w.recognize(canvas).then(function(r){
         var t=r.data.text.trim();
         if(t&&t.length>1){editor.value=t;progress.style.display='none';toast('自动识别完成')}
         else{progress.style.display='none'}
+        w.terminate();
+      }).catch(function(){progress.style.display='none';w.terminate()});
+    }).catch(function(){
+      Tesseract.createWorker('chi_sim').then(function(w){
+        w.recognize(canvas).then(function(r){
+          var t=r.data.text.trim();
+          if(t&&t.length>1){editor.value=t;progress.style.display='none';toast('自动识别完成')}
+          else{progress.style.display='none'}
+          w.terminate();
+        }).catch(function(){progress.style.display='none';w.terminate()});
       }).catch(function(){progress.style.display='none'});
     });
-  });
+  },function(){progress.style.display='none'});
 }
+
 function startOCR(file){
-  var preview=document.getElementById('ocrPreview');var editor=document.getElementById('ocrEditor');
+  var canvas=document.getElementById('ocrPreview');var editor=document.getElementById('ocrEditor');
   var progress=document.getElementById('ocrProgress');var hint=document.getElementById('ocrHint');
-  preview.src=URL.createObjectURL(file);preview.style.display='block';
-  hint.style.display='block';editor.value='';editor.placeholder='在此粘贴识别文字，或等待自动识别结果...';
-  progress.style.display='none';
-  preprocessImage(file,function(processed){tryTesseractBG(processed,editor,progress)});
-}
-function initTempOCR(){
-  var inp=document.getElementById('ocrFileInput');var editor=document.getElementById('ocrEditor');
-  var preview=document.getElementById('ocrPreview');var hint=document.getElementById('ocrHint');
-  var progress=document.getElementById('ocrProgress');progress.style.display='none';
-  document.getElementById('btnOcr').addEventListener('click',function(){
-    tempLastInput='ocr';goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);inp.click();
+  showPhotoOnCanvas(file,canvas,function(c){
+    hint.style.display='block';editor.value='';editor.placeholder='在此粘贴识别文字，或等待自动识别结果...';
+    progress.style.display='none';
+    tryTesseractBG(c,editor,progress);
   });
-  inp.addEventListener('change',function(){if(this.files&&this.files[0])startOCR(this.files[0])});
-  document.getElementById('ocrRetake').addEventListener('click',function(){inp.value='';inp.click()});
+}
+
+function initTempOCR(){
+  var cameraInp=document.getElementById('ocrFileInput');
+  var libraryInp=document.getElementById('ocrLibraryInput');
+  var editor=document.getElementById('ocrEditor');
+  var canvas=document.getElementById('ocrPreview');var hint=document.getElementById('ocrHint');
+  var progress=document.getElementById('ocrProgress');progress.style.display='none';
+
+  function handleFile(file){if(file)startOCR(file)}
+
+  document.getElementById('btnOcr').addEventListener('click',function(){
+    tempLastInput='ocr';goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);cameraInp.click();
+  });
+  cameraInp.addEventListener('change',function(){if(this.files&&this.files[0])handleFile(this.files[0])});
+  libraryInp.addEventListener('change',function(){if(this.files&&this.files[0])handleFile(this.files[0])});
+
+  document.getElementById('ocrRetake').addEventListener('click',function(){cameraInp.value='';cameraInp.click()});
+  document.getElementById('ocrLibrary').addEventListener('click',function(){libraryInp.value='';libraryInp.click()});
   document.getElementById('ocrPaste').addEventListener('click',function(){
     navigator.clipboard.readText().then(function(t){
       if(t.trim()){editor.value=t;toast('已粘贴 '+t.length+' 字')}else{toast('剪贴板为空')}
