@@ -714,9 +714,9 @@ function loadTesseract(cb,onFail,onStatus){
   tesseractLoading=true;
   if(onStatus)onStatus('\u52a0\u8f7d\u8bc6\u522b\u5f15\u64ce...');
   var s=document.createElement('script');s.src=TESS_LOCAL;
-  var to=setTimeout(function(){tesseractLoading=false;onFail&&onFail()},10000);
+  var to=setTimeout(function(){tesseractLoading=false;onFail&&onFail('timeout')},10000);
   s.onload=function(){clearTimeout(to);tesseractLoading=false;tesseractLoaded=true;cb()};
-  s.onerror=function(){clearTimeout(to);tesseractLoading=false;onFail&&onFail()};
+  s.onerror=function(e){clearTimeout(to);tesseractLoading=false;onFail&&onFail('script error')};
   document.head.appendChild(s);
 }
 
@@ -764,7 +764,7 @@ function tryOCR(canvas,editor,progress,status){
   var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},30000);
   Tesseract.createWorker('chi_sim',1,{
     workerPath:'./lib/worker.min.js',
-    corePath:'./lib/tesseract-core.wasm.js',
+    corePath:'./lib/',
     langPath:TESSDATA_LOCAL
   }).then(function(w){
     if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
@@ -773,8 +773,8 @@ function tryOCR(canvas,editor,progress,status){
       if(txt&&txt.length>2&&hasCJK(txt)){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210 '+txt.length+'\u5b57')}
       else if(txt&&txt.length>2){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210\uff0c\u672a\u68c0\u6d4b\u5230\u4e2d\u6587')}
       else{progress.style.display='none';showManualFallbackHint()}w.terminate();
-    }).catch(function(e){clearTimeout(timer);w.terminate();progress.style.display='none';showManualFallbackHint()});
-  }).catch(function(e){clearTimeout(timer);progress.style.display='none';showManualFallbackHint()});
+    }).catch(function(e){clearTimeout(timer);console.error('OCR recognize error:',e);w.terminate();progress.style.display='none';showManualFallbackHint()});
+  }).catch(function(e){clearTimeout(timer);console.error('OCR createWorker error:',e);progress.style.display='none';showManualFallbackHint()});
 }
 
 function showManualFallbackHint(){
@@ -822,7 +822,7 @@ function startOCR(file){
     loadTesseract(function(){
       if(ocrCancelFlag)return;
       tryOCR(c,editor,progress,status);
-    },function(){progress.style.display='none';showManualFallbackHint();toast('\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b')},
+    },function(e){progress.style.display='none';console.error('Tesseract script load error:',e);showManualFallbackHint();toast('\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b')},
     function(s){if(!ocrCancelFlag)status.textContent=s});
   });
 }
