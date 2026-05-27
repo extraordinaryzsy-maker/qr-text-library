@@ -41,7 +41,7 @@ Then open http://localhost:3000 or http://192.168.1.13:3000 (same WiFi).
 
 ## Presets
 
-Hardcoded in `getPresets()` function (~line 448). Categories: 术后记录, 入院记录, 手术记录, 出院小结, 会诊记录, 检验报告, 影像报告, 病程记录, 知情同意, 医嘱模板.
+Hardcoded in `getPresets()` function (~line 588). 10 categories, 68 items. Categories: 抗肿瘤治疗前小结, 输血评估, MDT-食管癌, MDT-结肠癌, MDT-直肠癌, MDT-胃癌, MDT-肺癌及肺结节, 外购药品申请, 知情同意书, 参考信息.
 
 ## Key design decisions
 
