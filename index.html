@@ -660,28 +660,32 @@ var tesseractLoading=false,tesseractLoaded=false;
 var ocrCancelFlag=false;
 var tempLastInput=null;
 
-// Multi-CDN: jsdelivr → unpkg → elemecdn (China) → npmmirror (China)
 var TESS_CDNS=[
+  'https://raw.githubusercontent.com/naptha/tesseract.js/v4.1.1/dist/tesseract.min.js',
   'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js',
-  'https://unpkg.com/tesseract.js@4/dist/tesseract.min.js',
-  'https://npm.elemecdn.com/tesseract.js@4/dist/tesseract.min.js',
-  'https://registry.npmmirror.com/tesseract.js/4.1.1/files/dist/tesseract.min.js'
+  'https://unpkg.com/tesseract.js@4/dist/tesseract.min.js'
 ];
 var TESSDATA_URLS=[
-  'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/',
   'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0/',
   'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0_fast/'
 ];
+
+// Quick network pre-check (2s timeout) - skip OCR if no CDN reachable
+function precheckNetwork(cb){
+  var ctrl=new AbortController();
+  var t=setTimeout(function(){ctrl.abort();cb(false)},2000);
+  fetch('https://raw.githubusercontent.com/naptha/tesseract.js/v4.1.1/package.json',{method:'HEAD',signal:ctrl.signal,cache:'no-store'}).then(function(r){clearTimeout(t);cb(r.ok)}).catch(function(){clearTimeout(t);cb(false)});
+}
 
 function loadTesseract(cb,onFail,onStatus){
   if(tesseractLoaded&&window.Tesseract&&typeof Tesseract.createWorker==='function'){cb();return}
   if(tesseractLoading){var intv=setInterval(function(){if(tesseractLoaded){clearInterval(intv);cb()}},200);return}
   tesseractLoading=true;var idx=0;
   function tryNext(){
-    if(idx>=TESS_CDNS.length){tesseractLoading=false;onFail&&onFail('\u6240\u6709CDN\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u8fde\u63a5');return}
-    if(onStatus)onStatus('\u4e0b\u8f7d\u8bc6\u522b\u5f15\u64ce ('+(idx+1)+'/'+TESS_CDNS.length+')');
+    if(idx>=TESS_CDNS.length){tesseractLoading=false;onFail&&onFail();return}
+    if(onStatus)onStatus('\u52a0\u8f7d\u5f15\u64ce '+(idx+1)+'/'+TESS_CDNS.length);
     var s=document.createElement('script');s.src=TESS_CDNS[idx];
-    var to=setTimeout(function(){idx++;s.onload=s.onerror=null;if(s.parentNode)s.parentNode.removeChild(s);tryNext()},10000);
+    var to=setTimeout(function(){idx++;s.onload=s.onerror=null;if(s.parentNode)s.parentNode.removeChild(s);tryNext()},5000);
     s.onload=function(){clearTimeout(to);tesseractLoading=false;tesseractLoaded=true;cb()};
     s.onerror=function(){clearTimeout(to);idx++;tryNext()};
     document.head.appendChild(s);
@@ -695,29 +699,23 @@ function preprocessImage(srcCanvas){
   var tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
   var ctx=tmp.getContext('2d');ctx.drawImage(srcCanvas,0,0);
   var imgData=ctx.getImageData(0,0,w,h),d=imgData.data;
-  // Grayscale (luminance)
   var gray=new Uint8Array(w*h);
   for(var i=0,j=0;i<d.length;i+=4,j++){gray[j]=Math.round(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114)}
-  // Contrast stretch
   var min=255,max=0;
   for(var j=0;j<gray.length;j++){if(gray[j]<min)min=gray[j];if(gray[j]>max)max=gray[j]}
   var range=max-min||1;
   for(var j=0;j<gray.length;j++){gray[j]=Math.round(((gray[j]-min)/range)*255)}
-  // Otsu threshold
   var hist=new Uint32Array(256),total=gray.length;
   for(var j=0;j<total;j++)hist[gray[j]]++;
   var sumB=0,wB=0,sumAll=0;
   for(var t=0;t<256;t++)sumAll+=t*hist[t];
   var maxV=0,thr=128;
-  for(var t=0;t<256;t++){wB+=hist[t];if(!wB)continue;var wF=total-wB;if(!wF)break;sumB+=t*hist[t];var between=wB*wF*(sumB/wB-(sumAll-sumB)/wF)*((sumB/wB)-(sumAll-sumB)/wF);if(between>maxV){maxV=between;thr=t}}
-  // Apply binary threshold
+  for(var t=0;t<256;t++){wB+=hist[t];if(!wB)continue;var wF=total-wB;if(!wF)break;sumB+=t*hist[t];var between=wB*wF*Math.pow(sumB/wB-(sumAll-sumB)/wF,2);if(between>maxV){maxV=between;thr=t}}
   for(var i=0,j=0;i<d.length;i+=4,j++){var v=gray[j]>thr?255:0;d[i]=d[i+1]=d[i+2]=v}
   ctx.putImageData(imgData,0,0);
-  // Sharpen via contrast filter
   var sharp=document.createElement('canvas');sharp.width=w;sharp.height=h;
   if(sharp.getContext('2d').filter!==undefined){var sc=sharp.getContext('2d');sc.filter='contrast(130%)';sc.drawImage(tmp,0,0)}
   else{sharp.getContext('2d').drawImage(tmp,0,0)}
-  // Scale up if too small for Tesseract (chars need ~20px+)
   if(w<800){var ratio=Math.min(800/w,2);var big=document.createElement('canvas');big.width=Math.round(w*ratio);big.height=Math.round(h*ratio);var bc=big.getContext('2d');bc.imageSmoothingEnabled=true;bc.drawImage(sharp,0,0,big.width,big.height);return big}
   return sharp;
 }
@@ -732,20 +730,19 @@ function cleanOCRText(text){
 }
 function hasCJK(text){return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text)}
 
-// -- Core OCR with CDN train data retry --
 function tryOCR(canvas,editor,progress,status,langIdx){
   if(ocrCancelFlag)return;if(langIdx===undefined)langIdx=0;
   var langPath=TESSDATA_URLS[langIdx];
-  if(status)status.textContent='\u4e0b\u8f7d\u8bed\u8a00\u5305 ('+(langIdx+1)+'/'+TESSDATA_URLS.length+')';
+  if(status)status.textContent='\u4e0b\u8f7d\u8bed\u8a00\u5305 '+(langIdx+1)+'/'+TESSDATA_URLS.length;
   var processed;try{processed=preprocessImage(canvas)}catch(e){processed=canvas}
-  var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},30000);
+  var timer=setTimeout(function(){progress.style.display='none';showManualFallbackHint();toast('\u8bc6\u522b\u8d85\u65f6')},25000);
   var fallback=function(){if(langIdx+1<TESSDATA_URLS.length){tryOCR(canvas,editor,progress,status,langIdx+1)}else{clearTimeout(timer);progress.style.display='none';showManualFallbackHint()}};
   Tesseract.createWorker('chi_sim',1,{langPath:langPath}).then(function(w){
-    if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u6587\u5b57\u4e2d...';
+    if(ocrCancelFlag){w.terminate();return}if(status)status.textContent='\u8bc6\u522b\u4e2d...';
     w.recognize(processed).then(function(r){clearTimeout(timer);if(ocrCancelFlag){w.terminate();return}
       var txt=cleanOCRText(r.data.text);
-      if(txt&&txt.length>2&&hasCJK(txt)){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210\uff0c\u5171 '+txt.length+' \u5b57')}
-      else if(txt&&txt.length>2){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210\uff08\u672a\u68c0\u6d4b\u5230\u4e2d\u6587\uff09')}
+      if(txt&&txt.length>2&&hasCJK(txt)){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210 '+txt.length+'\u5b57')}
+      else if(txt&&txt.length>2){editor.value=txt;progress.style.display='none';toast('\u8bc6\u522b\u5b8c\u6210\uff0c\u672a\u68c0\u6d4b\u5230\u4e2d\u6587')}
       else{fallback()}w.terminate();
     }).catch(function(){clearTimeout(timer);w.terminate();fallback()});
   }).catch(function(){clearTimeout(timer);fallback()});
@@ -753,7 +750,7 @@ function tryOCR(canvas,editor,progress,status,langIdx){
 
 function showManualFallbackHint(){
   var h=document.getElementById('ocrHint');
-  h.innerHTML='<b>iOS:</b> \u957f\u6309\u7167\u7247 \u2192 \u9009\u62e9\u6587\u672c \u2192 \u590d\u5236 \u2192 \u70b9\u300c\u7c98\u8d34\u300d<br><b>Android:</b> \u957f\u6309\u56fe\u7247 \u2192 \u590d\u5236\u6587\u5b57 \u2192 \u70b9\u300c\u7c98\u8d34\u300d';
+  h.innerHTML='<b>\u81ea\u52a8\u8bc6\u522b\u6682\u4e0d\u53ef\u7528</b><br><br><b>iOS:</b> \u957f\u6309\u7167\u7247 \u2192 \u9009\u62e9\u6587\u672c \u2192 \u590d\u5236 \u2192 \u70b9\u300c\u7c98\u8d34\u300d<br><b>Android:</b> \u957f\u6309\u56fe\u7247 \u2192 \u590d\u5236\u6587\u5b57 \u2192 \u70b9\u300c\u7c98\u8d34\u300d';
   h.style.color='#e0a040';h.style.background='#1a1a0e';h.style.display='block';
 }
 
@@ -792,12 +789,18 @@ function startOCR(file){
     hint.style.display='block';hint.innerHTML='\u957f\u6309\u7167\u7247 \u2192 \u9009\u62e9\u6587\u672c \u2192 \u590d\u5236<br>\u7136\u540e\u70b9\u51fb\u4e0b\u65b9\u300c\u7c98\u8d34\u300d\u6309\u94ae';
     hint.style.color='#888';hint.style.background='#1a1a2e';
     editor.value='';editor.placeholder='\u81ea\u52a8\u8bc6\u522b\u4e2d\uff0c\u6216\u624b\u52a8\u7c98\u8d34...';
-    progress.style.display='block';status.textContent='\u6b63\u5728\u52a0\u8f7d...';
-    loadTesseract(function(){
+    progress.style.display='block';status.textContent='\u68c0\u6d4b\u7f51\u7edc...';
+    // Network pre-check first
+    precheckNetwork(function(reachable){
       if(ocrCancelFlag)return;
-      tryOCR(c,editor,progress,status);
-    },function(errMsg){progress.style.display='none';showManualFallbackHint();toast(errMsg||'\u8bc6\u522b\u5f15\u64ce\u52a0\u8f7d\u5931\u8d25')},
-    function(s){if(!ocrCancelFlag)status.textContent=s});
+      if(!reachable){progress.style.display='none';showManualFallbackHint();toast('\u7f51\u7edc\u4e0d\u53ef\u7528\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b');return}
+      status.textContent='\u6b63\u5728\u52a0\u8f7d...';
+      loadTesseract(function(){
+        if(ocrCancelFlag)return;
+        tryOCR(c,editor,progress,status);
+      },function(){progress.style.display='none';showManualFallbackHint();toast('\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u8bc6\u522b')},
+      function(s){if(!ocrCancelFlag)status.textContent=s});
+    });
   });
 }
 
@@ -829,7 +832,7 @@ function initTempOCR(){
   });
   document.getElementById('ocrPaste').addEventListener('click',function(){
     navigator.clipboard.readText().then(function(t){
-      if(t.trim()){editor.value=t;toast('\u5df2\u7c98\u8d34 '+t.length+' \u5b57')}else{toast('\u526a\u8d34\u677f\u4e3a\u7a7a')}
+      if(t.trim()){editor.value=t;toast('\u5df2\u7c98\u8d34 '+t.length+'\u5b57')}else{toast('\u526a\u8d34\u677f\u4e3a\u7a7a')}
     }).catch(function(){toast('\u65e0\u6cd5\u8bbf\u95ee\u526a\u8d34\u677f\uff0c\u8bf7\u624b\u52a8\u957f\u6309\u7c98\u8d34')});
   });
   document.getElementById('ocrGenerate').addEventListener('click',function(){
