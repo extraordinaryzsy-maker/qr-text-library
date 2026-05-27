@@ -36,6 +36,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 .item-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center}
 .item-card{border-radius:14px;padding:20px 12px;text-align:center;cursor:pointer;transition:transform .15s;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .item-card:active{transform:scale(.96)}
+.item-card.dragging{opacity:.85;transform:scale(1.05);z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.item-card.drop-target{outline:3px dashed rgba(255,255,255,.6);outline-offset:2px}
 .item-name{font-size:14px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
 .item-meta{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px}
 
@@ -300,13 +302,13 @@ navBack.addEventListener('click',function(){
     addBtn.classList.add('visible');
   }else if(pageL2.classList.contains('active')){
     if(isSearchMode){isSearchMode=false}
-    renderL1();goTo(pageL1,'QR 文本库',false);
+    renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible');
   }else if(document.getElementById('page-temp-qr').classList.contains('active')){
     if(tempLastInput==='ocr')goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);
     else if(tempLastInput==='voice')goTo(document.getElementById('page-temp-voice'),'语音输入',true);
-    else goTo(pageL1,'QR 文本库',false);
+    else {goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible')}
   }else if(document.getElementById('page-temp-ocr').classList.contains('active')||document.getElementById('page-temp-voice').classList.contains('active')){
-    renderL1();goTo(pageL1,'QR 文本库',false);
+    renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible');
   }
 });
 
@@ -314,7 +316,7 @@ navBack.addEventListener('click',function(){
 function renderL1(){
   var data=load();sortCats(data);
   catGrid.innerHTML='';
-  if(data.categories.length===0){l1Empty.style.display='block';return}
+  if(data.categories.length===0){l1Empty.style.display='block';addBtn.classList.add('visible');return}
   l1Empty.style.display='none';
   data.categories.forEach(function(cat,i){
     var card=document.createElement('div');
@@ -326,15 +328,29 @@ function renderL1(){
     var lp;card.addEventListener('touchstart',function(e){lp=setTimeout(function(){startDrag(card,cat.id,e)},500)},{passive:false});card.addEventListener('touchend',function(){clearTimeout(lp)});card.addEventListener('touchmove',function(){clearTimeout(lp)});
     catGrid.appendChild(card);
   });
+  addBtn.classList.add('visible');
+  addBtn.onclick=showL1AddPicker;
+}
+
+function showL1AddPicker(){
+  var data=load();
+  var h='<div class="modal-header"><h2>选择分类</h2><button class="modal-close-btn" id="l1PickerClose">&times;</button></div>';
+  if(data.categories.length===0){h+='<p style="color:#888;text-align:center;padding:20px">暂无分类，请先在设置中创建</p>'}
+  else{data.categories.forEach(function(cat){h+='<div class="settings-item" id="l1pick-'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>'})}
+  document.getElementById('settingsContent').innerHTML=h;
+  document.getElementById('settingsModal').classList.add('open');
+  document.getElementById('l1PickerClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
+  data.categories.forEach(function(cat){document.getElementById('l1pick-'+cat.id).onclick=function(){document.getElementById('settingsModal').classList.remove('open');showItemEditor(cat.id,null)}})
 }
 
 // Drag-to-swap
-var dragCard=null,dragCatId=null,ghost=null,offsetX=0,offsetY=0;
-function startDrag(card,catId,e){dragCard=card;dragCatId=catId;card.classList.add('dragging');ghost=document.createElement('div');ghost.className='ghost';ghost.style.width=card.offsetWidth+'px';ghost.style.height=card.offsetHeight+'px';ghost.style.backgroundColor=card.style.backgroundColor;ghost.innerHTML=card.innerHTML;document.body.appendChild(ghost);var t=e.touches[0];var r=card.getBoundingClientRect();offsetX=t.clientX-r.left;offsetY=t.clientY-r.top;moveGhost(t.clientX,t.clientY)}
+var dragCard=null,dragCatId=null,dragItemId=null,dragItemCatId=null,ghost=null,offsetX=0,offsetY=0;
+function startDrag(card,catId,e,itemId){dragCard=card;dragCatId=catId;dragItemId=itemId||null;dragItemCatId=itemId?catId:null;card.classList.add('dragging');ghost=document.createElement('div');ghost.className='ghost';ghost.style.width=card.offsetWidth+'px';ghost.style.height=card.offsetHeight+'px';ghost.style.backgroundColor=card.style.backgroundColor;ghost.innerHTML=card.innerHTML;document.body.appendChild(ghost);var t=e.touches[0];var r=card.getBoundingClientRect();offsetX=t.clientX-r.left;offsetY=t.clientY-r.top;moveGhost(t.clientX,t.clientY)}
 function moveGhost(x,y){if(!ghost)return;ghost.style.left=(x-offsetX)+'px';ghost.style.top=(y-offsetY)+'px'}
-document.addEventListener('touchmove',function(e){if(!dragCard)return;e.preventDefault();var t=e.touches[0];moveGhost(t.clientX,t.clientY);document.querySelectorAll('.cat-card').forEach(function(c){c.classList.remove('drop-target');if(c===dragCard)return;var r=c.getBoundingClientRect();if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){c.classList.add('drop-target')}})},{passive:false});
-document.addEventListener('touchend',function(){if(!dragCard)return;var t=document.querySelector('.cat-card.drop-target');if(t){var tid=t.getAttribute('data-cid');swapCategories(dragCatId,tid)}dragCard.classList.remove('dragging');document.querySelectorAll('.cat-card').forEach(function(c){c.classList.remove('drop-target')});if(ghost){ghost.remove();ghost=null}dragCard=null;dragCatId=null});
+document.addEventListener('touchmove',function(e){if(!dragCard)return;e.preventDefault();var t=e.touches[0];moveGhost(t.clientX,t.clientY);var isItem=dragCard.classList.contains('item-card');var sel=isItem?'.item-card':'.cat-card';document.querySelectorAll(sel).forEach(function(c){c.classList.remove('drop-target');if(c===dragCard)return;var r=c.getBoundingClientRect();if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){c.classList.add('drop-target')}})},{passive:false});
+document.addEventListener('touchend',function(){if(!dragCard)return;var isItem=dragCard.classList.contains('item-card');var sel=isItem?'.item-card':'.cat-card';var t=document.querySelector(sel+'.drop-target');if(t){if(isItem){var tid=t.getAttribute('data-iid');swapItems(dragItemCatId,dragItemId,tid)}else{var tid=t.getAttribute('data-cid');swapCategories(dragCatId,tid)}}dragCard.classList.remove('dragging');document.querySelectorAll(sel).forEach(function(c){c.classList.remove('drop-target')});if(ghost){ghost.remove();ghost=null}dragCard=null;dragCatId=null;dragItemId=null;dragItemCatId=null});
 function swapCategories(id1,id2){var d=load();var c1=d.categories.find(function(c){return c.id===id1});var c2=d.categories.find(function(c){return c.id===id2});if(!c1||!c2)return;var t=c1.order;c1.order=c2.order;c2.order=t;save(d);renderL1()}
+function swapItems(catId,id1,id2){var d=load();var cat=d.categories.find(function(c){return c.id===catId});if(!cat)return;var i1=cat.items.find(function(i){return i.id===id1});var i2=cat.items.find(function(i){return i.id===id2});if(!i1||!i2)return;var t=i1.order;i1.order=i2.order;i2.order=t;save(d);renderL2(catId)}
 
 // ==================== L2: Items ====================
 function renderL2(catId){
@@ -353,18 +369,15 @@ function renderL2(catId){
     card.className='item-card';
     card.style.backgroundColor=itemColor(catHue,i,cat.items.length);
     card.innerHTML='<div class="item-name">'+escHtml(item.name)+'</div><div class="item-meta">'+(item.text?item.text.length:0)+' 字</div>';
+    card.setAttribute('data-iid',item.id);
+    card.setAttribute('data-cid',catId);
 
-    // Tap detection without 300ms delay
+    // Tap + long-press drag
     var touchStartTime=0,touchMoved=false;
-    card.addEventListener('touchstart',function(){touchStartTime=Date.now();touchMoved=false});
-    card.addEventListener('touchmove',function(){touchMoved=true});
-    card.addEventListener('touchend',function(){
-      if(!touchMoved&&Date.now()-touchStartTime<400){
-        currentItemId=item.id;
-        renderL3(catId,item.id);
-        goTo(pageL3,item.name,true);
-      }
-    });
+    var lp;
+    card.addEventListener('touchstart',function(e){touchStartTime=Date.now();touchMoved=false;lp=setTimeout(function(){startDrag(card,catId,e,item.id)},500)},{passive:false});
+    card.addEventListener('touchend',function(){clearTimeout(lp);if(!touchMoved&&Date.now()-touchStartTime<400&&!card.classList.contains('dragging')){currentItemId=item.id;renderL3(catId,item.id);goTo(pageL3,item.name,true)}});
+    card.addEventListener('touchmove',function(){clearTimeout(lp);touchMoved=true});
     itemGrid.appendChild(card);
   });
 
@@ -422,7 +435,8 @@ function showItemEditor(catId,itemId){
     save(d);
     document.getElementById('settingsModal').classList.remove('open');
     renderL2(catId);
-    if(!pageL2.classList.contains('active')){goTo(pageL2,d.categories[ci].name,true);addBtn.classList.add('visible');isSearchMode=false}
+    if(pageL1.classList.contains('active')){renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible')}
+    else if(!pageL2.classList.contains('active')){goTo(pageL2,d.categories[ci].name,true);addBtn.classList.add('visible');isSearchMode=false}
     toast(isNew?'已添加: '+name:'已更新');
   };
   if(!isNew){document.getElementById('editorDeleteItem').onclick=function(){
