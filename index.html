@@ -147,6 +147,19 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 .pin-reset{background:none;border:none;color:#666;font-size:12px;margin-top:20px;cursor:pointer;text-decoration:underline}
 .pin-reset:hover{color:#e05555}
 .pin-error{color:#e05555;font-size:13px;margin-bottom:12px;min-height:20px}
+
+/* Login */
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;min-height:-webkit-fill-available;padding:24px}
+.login-icon{font-size:48px;margin-bottom:16px}
+.login-title{font-size:20px;font-weight:700;margin-bottom:24px;color:#e0e0e0}
+.login-input{width:100%;max-width:300px;padding:14px;background:#1a1a2e;border:1px solid #3a3a5a;border-radius:12px;color:#e0e0e0;font-size:15px;outline:none;margin-bottom:12px;transition:border-color .2s}
+.login-input:focus{border-color:#7c8aff}
+.login-input.error{border-color:#e74c3c}
+.login-error{color:#e74c3c;font-size:13px;margin-bottom:12px;min-height:20px;text-align:center;max-width:300px}
+.login-btn{width:100%;max-width:300px;padding:14px;background:#7c8aff;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
+.login-btn:active{opacity:.8}
+.login-setup-hint{color:#888;font-size:13px;margin-top:16px;text-align:center;max-width:300px;line-height:1.6}
+.login-disclaimer{color:#666;font-size:12px;text-align:center;max-width:300px;line-height:1.6;margin-top:20px}
 </style>
 </head>
 <body>
@@ -174,6 +187,22 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <button class="pin-key del" data-key="del">&#x232B;</button>
   </div>
   <button class="pin-reset" id="pinReset" style="display:none">忘记密码？(重置将清除全部数据)</button>
+</div>
+
+<!-- Login page -->
+<div class="page active" id="page-login">
+  <div class="login-wrap">
+    <div class="login-icon">&#x1F512;</div>
+    <div class="login-title" id="loginTitle">QR 文本库</div>
+    <input type="text" class="login-input" id="loginUser" placeholder="请输入账户名" autocomplete="off">
+    <input type="password" class="login-input" id="loginPass" placeholder="请输入密码">
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" id="loginBtn">登 录</button>
+    <div class="login-setup-hint" id="loginSetupHint" style="display:none"></div>
+    <div class="login-disclaimer">
+      本工具为临床医疗文书模板管理助手，旨在协助执业医师提高电子病历录入效率。最终病历内容须由临床医生审核确认后录入医院信息系统。本软件不涉及患者隐私数据的采集、传输或云端存储，所有数据仅保存在您的设备本地。
+    </div>
+  </div>
 </div>
 
 <div class="nav" id="nav">
@@ -404,7 +433,7 @@ function processPin(){
     if(pinInput===pinSetupValue){
       setupPin(pinInput);
       hidePinOverlay();
-      initApp();
+      enterMainApp();
     }else{
       error.textContent='两次输入的密码不一致，请重新设置';
       pinInput='';pinSetupValue='';
@@ -416,7 +445,7 @@ function processPin(){
       var s=Date.now().toString(36);
       sessionStorage.setItem('qrlib_session',s);
       hidePinOverlay();
-      initApp();
+      enterMainApp();
     }else{
       error.textContent='密码错误，请重试';
       pinInput='';
@@ -455,6 +484,108 @@ function processPin(){
   }
 }
 
+// ==================== Login System ====================
+var LOGIN_KEY='qrlib_login_v1';
+var LOGIN_SESSION_KEY='qrlib_login_session';
+
+function hashLoginStr(s){
+  var h=0,i;for(i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return 'l2_'+Math.abs(h).toString(36)+'_'+s.length.toString(36);
+}
+
+function getLoginData(){
+  try{return JSON.parse(localStorage.getItem(LOGIN_KEY))||{}}catch(e){return{}}
+}
+
+function saveLoginData(d){localStorage.setItem(LOGIN_KEY,JSON.stringify(d))}
+
+function isFirstRun(){var d=getLoginData();return !d.user||!d.passHash}
+
+function checkLogin(user,pass){
+  var d=getLoginData();
+  return d.user===user && d.passHash===hashLoginStr(pass);
+}
+
+function setupLogin(user,pass){
+  saveLoginData({user:user,passHash:hashLoginStr(pass)});
+  sessionStorage.setItem(LOGIN_SESSION_KEY,'1');
+  enterAppAfterLogin();
+}
+
+function doLogin(user,pass){
+  if(checkLogin(user,pass)){
+    sessionStorage.setItem(LOGIN_SESSION_KEY,'1');
+    enterAppAfterLogin();
+  }else{
+    document.getElementById('loginError').textContent='账户名或密码错误，请重试';
+    document.getElementById('loginUser').classList.add('error');
+    document.getElementById('loginPass').classList.add('error');
+  }
+}
+
+function enterAppAfterLogin(){
+  document.getElementById('page-login').classList.remove('active');
+  if(!hasPin()){
+    showPinOverlay('setup');
+  }else if(!isUnlocked()){
+    showPinOverlay('verify');
+  }else{
+    hidePinOverlay();
+  }
+}
+
+function enterMainApp(){
+  hidePinOverlay();
+}
+
+function initLogin(){
+  if(sessionStorage.getItem(LOGIN_SESSION_KEY)){
+    enterAppAfterLogin();
+    return;
+  }
+  var d=getLoginData();
+  var userEl=document.getElementById('loginUser');
+  var passEl=document.getElementById('loginPass');
+  var btnEl=document.getElementById('loginBtn');
+  var errEl=document.getElementById('loginError');
+  var hintEl=document.getElementById('loginSetupHint');
+  var titleEl=document.getElementById('loginTitle');
+
+  if(isFirstRun()){
+    titleEl.textContent='设置账户密码';
+    userEl.placeholder='设置账户名';
+    passEl.placeholder='设置密码';
+    btnEl.textContent='设 置';
+    hintEl.style.display='block';
+    hintEl.textContent='首次使用，请设置账户名和密码。\n请妥善保管，密码不可找回。';
+    errEl.textContent='';
+    btnEl.onclick=function(){
+      var user=userEl.value.trim();
+      var pass=passEl.value;
+      if(!user){errEl.textContent='请输入账户名';return}
+      if(!pass||pass.length<4){errEl.textContent='密码长度至少4位';return}
+      setupLogin(user,pass);
+    };
+  }else{
+    titleEl.textContent='QR 文本库';
+    userEl.placeholder='请输入账户名';
+    passEl.placeholder='请输入密码';
+    btnEl.textContent='登 录';
+    hintEl.style.display='none';
+    errEl.textContent='';
+    btnEl.onclick=function(){
+      var user=userEl.value.trim();
+      var pass=passEl.value;
+      if(!user||!pass){errEl.textContent='请输入账户名和密码';return}
+      doLogin(user,pass);
+    };
+    userEl.addEventListener('input',function(){userEl.classList.remove('error');passEl.classList.remove('error');errEl.textContent=''});
+    passEl.addEventListener('input',function(){userEl.classList.remove('error');passEl.classList.remove('error');errEl.textContent=''});
+    passEl.addEventListener('keydown',function(e){if(e.key==='Enter')btnEl.click()});
+  }
+  document.getElementById('page-login').classList.add('active');
+  pageL1.classList.remove('active');
+}
+
 // Wire up PIN pad
 document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.pin-key').forEach(function(btn){
@@ -472,21 +603,11 @@ document.addEventListener('DOMContentLoaded',function(){
     }
   });
 
-  // Check PIN on startup
-  if(!hasPin()){
-    showPinOverlay('setup');
-  }else if(!isUnlocked()){
-    showPinOverlay('verify');
-  }else{
-    hidePinOverlay();
-    initApp();
-  }
+  initLogin();
 });
 
-// Called after PIN is verified or when already unlocked
-function initApp(){
+function enterMainApp(){
   hidePinOverlay();
-  // App init happens via the existing flow below
 }
 
 // Keyboard support for PIN
@@ -535,6 +656,7 @@ var isSearchMode=false;
 function goTo(page,title,showBack){
   pageL1.classList.remove('active');pageL2.classList.remove('active');pageL3.classList.remove('active');
   document.getElementById('page-temp-ocr').classList.remove('active');document.getElementById('page-temp-voice').classList.remove('active');document.getElementById('page-temp-qr').classList.remove('active');
+  document.getElementById('page-login').classList.remove('active');
   page.classList.add('active');
   navTitle.textContent=title;
   if(showBack){navBack.classList.add('visible')}else{navBack.classList.remove('visible')}
@@ -783,6 +905,7 @@ function openSettings(){
   h+='<button class="btn-sm secondary" id="importBtn" style="width:100%;margin-bottom:4px">导入（粘贴JSON）</button>';
   h+='<div id="importArea" style="display:none;margin-bottom:8px"><textarea id="importText" placeholder="在此粘贴 JSON..." style="width:100%;height:120px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#e0e0e0;font-size:12px;padding:8px;resize:none"></textarea><button class="btn-sm" id="doImportBtn" style="width:100%;margin-top:4px">执行导入</button></div>';
   h+='<div class="section-title">数据安全</div>';
+  h+='<button class="btn-sm secondary" id="changeLoginBtn" style="width:100%;margin-bottom:4px">修改登录密码</button>';
   if(hasPin()){
     h+='<button class="btn-sm secondary" id="changePinBtn" style="width:100%;margin-bottom:4px">修改应用密码</button>';
   }else{
@@ -855,6 +978,20 @@ function openSettings(){
   document.getElementById('clearAllDataBtn').onclick=function(){
     if(!confirm('确定清除全部数据？\n\n此操作将删除所有分类和子类数据，且无法恢复。建议先导出一份 JSON 备份。'))return;
     save({categories:[]});renderL1();openSettings();toast('已清除全部数据');
+  };
+
+  // Login password management
+  document.getElementById('changeLoginBtn').onclick=function(){
+    var d=getLoginData();
+    var oldPass=prompt('请输入当前登录密码');
+    if(!oldPass)return;
+    if(!checkLogin(d.user,oldPass)){toast('当前密码错误');return}
+    var newPass=prompt('请输入新登录密码（至少4位）');
+    if(!newPass||newPass.length<4){toast('新密码长度至少4位');return}
+    var newPass2=prompt('请再次输入新登录密码');
+    if(newPass!==newPass2){toast('两次输入不一致');return}
+    saveLoginData({user:d.user,passHash:hashLoginStr(newPass)});
+    toast('登录密码已修改');
   };
 
   // PIN management buttons
