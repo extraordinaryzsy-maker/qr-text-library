@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="病历书写助手">
+<meta name="apple-mobile-web-app-title" content="QR文本库">
 <meta name="theme-color" content="#0f0f1a">
-<title>病历书写助手</title>
+<title>QR 文本库</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh;min-height:-webkit-fill-available;user-select:none;-webkit-user-select:none;overflow-x:hidden}
@@ -129,109 +129,37 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
 .split-nav-btn:disabled{opacity:.3}
 .split-indicator{color:#888;font-size:14px;min-width:60px;text-align:center}
 
-/* Login */
-.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;min-height:-webkit-fill-available;padding:24px}
-.login-icon{font-size:48px;margin-bottom:16px}
-.login-title{font-size:20px;font-weight:700;margin-bottom:24px;color:#e0e0e0}
-.login-input{width:100%;max-width:300px;padding:14px;background:#1a1a2e;border:1px solid #3a3a5a;border-radius:12px;color:#e0e0e0;font-size:15px;outline:none;margin-bottom:12px;transition:border-color .2s}
-.login-input:focus{border-color:#7c8aff}
-.login-input.error{border-color:#e74c3c}
-.login-error{color:#e74c3c;font-size:13px;margin-bottom:12px;min-height:20px;text-align:center;max-width:300px}
-.login-btn{width:100%;max-width:300px;padding:14px;background:#7c8aff;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
-.login-btn:active{opacity:.8}
-.login-setup-hint{color:#888;font-size:13px;margin-top:16px;text-align:center;max-width:300px;line-height:1.6}
-
-/* Login disclaimer inside login page */
-.login-disclaimer{color:#666;font-size:12px;text-align:center;max-width:300px;line-height:1.6;margin-top:20px}
-
-/* Search bar */
-.search-wrap{display:none;padding:8px 16px;background:#1a1a2e;border-bottom:1px solid #2a2a4a}
-.search-wrap.open{display:flex;align-items:center;gap:6px}
-.search-input{flex:1;padding:10px 8px;background:#0f0f1a;border:1px solid #3a3a5a;border-radius:10px;color:#e0e0e0;font-size:13px;outline:none;min-width:0}
-.search-input:focus{border-color:#7c8aff}
-.search-input.name{border-color:#4a4a7a}
-.search-input.name:focus{border-color:#7c8aff}
-.search-input.content{border-color:#4a5a4a}
-.search-input.content:focus{border-color:#6abf6a}
-.search-cancel{background:none;border:none;color:#888;font-size:14px;cursor:pointer;padding:8px;white-space:nowrap}
-.nav-search-btn{width:32px;height:32px;border-radius:50%;background:#2a2a4a;border:none;color:#ccc;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0}
-.nav-search-btn.visible{display:flex}
-
-/* Recent & Favorites */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px}
-.section-header .sh-title{font-size:13px;color:#666;letter-spacing:1px}
-.mini-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;margin-bottom:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-.mini-grid::-webkit-scrollbar{display:none}
-.mini-card{border-radius:12px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .15s;min-height:50px;min-width:80px;max-width:120px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;word-break:break-all;line-height:1.3;flex-shrink:0;scroll-snap-align:start}
-.mini-card:active{transform:scale(.95)}
-
 /* PIN Lock */
-.pin-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,20,.97);z-index:500;flex-direction:column;align-items:center;justify-content:center}
-.pin-overlay.active{display:flex}
-.pin-title{color:#fff;font-size:18px;font-weight:600;margin-bottom:6px}
-.pin-sub{color:#666;font-size:13px;margin-bottom:24px}
-.pin-dots{display:flex;gap:12px;margin-bottom:28px}
-.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #444;transition:background .15s}
-.pin-dot.filled{background:#7c8aff;border-color:#7c8aff}
-.pin-numpad{display:grid;grid-template-columns:repeat(3,64px);gap:10px}
-.pin-key{width:64px;height:64px;border-radius:50%;background:#1e1e3a;border:1px solid #2a2a4a;color:#ccc;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pin-overlay{position:fixed;inset:0;background:#0f0f1a;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.pin-overlay.hidden{display:none}
+.pin-title{font-size:20px;font-weight:600;margin-bottom:8px;color:#fff}
+.pin-subtitle{font-size:13px;color:#888;margin-bottom:24px;text-align:center;line-height:1.6}
+.pin-dots{display:flex;gap:16px;margin-bottom:24px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #4a4a7a;transition:background .15s}
+.pin-dot.filled{background:#7b6cf6;border-color:#7b6cf6}
+.pin-dot.error{background:#e05555;border-color:#e05555;animation:pinShake .4s}
+@keyframes pinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(4,56px);gap:10px}
+.pin-key{background:#1a1a2e;border:1px solid #3a3a5a;border-radius:12px;color:#e0e0e0;font-size:22px;cursor:pointer;transition:background .1s;display:flex;align-items:center;justify-content:center}
 .pin-key:active{background:#2a2a5a}
-.pin-key.pin-del{font-size:14px;color:#888}
-.pin-key.pin-ok{font-size:14px;color:#7c8aff}
-
-/* Auto-advance */
-.auto-advance-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px}
-.auto-advance-switch{width:44px;height:24px;border-radius:12px;background:#333;border:none;cursor:pointer;position:relative;transition:background .2s}
-.auto-advance-switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
-.auto-advance-switch.on{background:#7c8aff}
-.auto-advance-switch.on::after{left:22px}
-.auto-advance-label{font-size:12px;color:#888}
-
-/* Fav button */
-.btn-icon-only{width:44px;height:44px;border-radius:50%;background:transparent;border:1px solid #444;color:#aaa;font-size:20px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .2s,color .2s}
-.btn-icon-only:active{border-color:#7c8aff}
-.btn-icon-only.faved{color:#e74c3c;border-color:#5a1a1a}
+.pin-key.del{font-size:14px;color:#888}
+.pin-key.empty{visibility:hidden}
+.pin-reset{background:none;border:none;color:#666;font-size:12px;margin-top:20px;cursor:pointer;text-decoration:underline}
+.pin-reset:hover{color:#e05555}
+.pin-error{color:#e05555;font-size:13px;margin-bottom:12px;min-height:20px}
 </style>
 </head>
 <body>
 
-<div class="nav" id="nav">
-  <button class="nav-back" id="navBack">&#x2039;</button>
-  <div class="nav-title" id="navTitle">病历书写助手</div>
-  <button class="nav-search-btn" id="navSearchBtn">&#x1F50D;</button>
-</div>
-
-<!-- Login page -->
-<div class="page active" id="page-login">
-  <div class="login-wrap">
-    <div class="login-icon">&#x1F512;</div>
-    <div class="login-title" id="loginTitle">病历书写助手</div>
-    <input type="text" class="login-input" id="loginUser" placeholder="请输入账户名" autocomplete="off">
-    <input type="password" class="login-input" id="loginPass" placeholder="请输入密码">
-    <div class="login-error" id="loginError"></div>
-    <button class="login-btn" id="loginBtn">登 录</button>
-    <div class="login-setup-hint" id="loginSetupHint" style="display:none"></div>
-    <div class="login-disclaimer">
-      本工具为临床医疗文书模板管理助手，旨在协助执业医师提高电子病历录入效率。最终病历内容须由临床医生审核确认后录入医院信息系统。本软件不涉及患者隐私数据的采集、传输或云端存储，所有数据仅保存在您的设备本地。
-    </div>
-  </div>
-</div>
-
-<!-- Search bar -->
-<div class="search-wrap" id="searchWrap">
-  <input type="text" class="search-input name" id="nameSearchInput" placeholder="搜索名称...">
-  <input type="text" class="search-input content" id="contentSearchInput" placeholder="搜索内容...">
-  <button class="search-cancel" id="searchCancel">取消</button>
-</div>
-
 <!-- PIN Lock overlay -->
 <div class="pin-overlay" id="pinOverlay">
-  <div class="pin-title" id="pinTitle">输入访问密码</div>
-  <div class="pin-sub" id="pinSub">输入4位数字密码</div>
-  <div class="pin-dots">
+  <div class="pin-title" id="pinTitle">输入应用密码</div>
+  <div class="pin-subtitle" id="pinSubtitle">请输入4位数字密码以解锁应用</div>
+  <div class="pin-error" id="pinError"></div>
+  <div class="pin-dots" id="pinDots">
     <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
   </div>
-  <div class="pin-numpad">
+  <div class="pin-pad">
     <button class="pin-key" data-key="1">1</button>
     <button class="pin-key" data-key="2">2</button>
     <button class="pin-key" data-key="3">3</button>
@@ -241,25 +169,30 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <button class="pin-key" data-key="7">7</button>
     <button class="pin-key" data-key="8">8</button>
     <button class="pin-key" data-key="9">9</button>
-    <button class="pin-key pin-del" data-key="del">&#x232B;</button>
+    <button class="pin-key empty"></button>
     <button class="pin-key" data-key="0">0</button>
-    <button class="pin-key pin-ok" data-key="ok">OK</button>
+    <button class="pin-key del" data-key="del">&#x232B;</button>
   </div>
+  <button class="pin-reset" id="pinReset" style="display:none">忘记密码？(重置将清除全部数据)</button>
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-back" id="navBack">&#x2039;</button>
+  <div class="nav-title" id="navTitle">QR 文本库</div>
 </div>
 
 <!-- L1 -->
-<div class="page" id="page-l1">
+<div class="page active" id="page-l1">
   <div class="temp-section">
     <div class="temp-label">临时输入</div>
     <div class="temp-buttons">
       <button class="temp-btn" id="btnOcr"><span class="temp-btn-icon">&#x1F4F7;</span>拍照识别</button>
       <button class="temp-btn" id="btnVoice"><span class="temp-btn-icon">&#x1F3A4;</span>语音输入</button>
-      <button class="temp-btn" id="btnFileImport"><span class="temp-btn-icon">&#x1F4C2;</span>文件导入</button>
     </div>
   </div>
   <div class="temp-label">常用模板</div>
   <div class="cat-grid" id="catGrid"></div>
-  <div class="empty-state" id="l1Empty" style="display:none">还没有分类<br>点击右下角 &#x2699; 进入设置，创建您的第一个分类</div>
+  <div class="empty-state" id="l1Empty" style="display:none">还没有分类<br>点击右下角 &#x2699; → 载入预设模板</div>
 </div>
 
 <!-- L2 -->
@@ -273,13 +206,26 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <div class="qr-white" id="qrWhite"></div>
     <div class="l3-meta" id="l3Meta"></div>
     <div class="l3-actions">
-      <button class="btn-icon-only" id="favItemBtn">&#x2661;</button>
-      <button class="btn-outline" id="editItemBtn" style="flex:1">编辑文本</button>
-      <button class="btn-outline" id="historyBtn" style="display:none">历史</button>
-      <button class="btn-outline" id="moveItemBtn">移动</button>
+      <button class="btn-outline" id="editItemBtn">编辑文本</button>
+      <button class="btn-outline" id="moveItemBtn">移动至其他分类</button>
       <button class="btn-danger" id="deleteItemBtn">删除</button>
     </div>
     <div class="l3-privacy" id="l3PrivacyHint"></div>
+  </div>
+</div>
+
+<!-- Disclaimer modal -->
+<div class="modal-overlay" id="disclaimerModal">
+  <div class="modal-content" style="display:flex;flex-direction:column;justify-content:center;text-align:center">
+    <h2 style="font-size:18px;margin-bottom:16px">使用须知</h2>
+    <p style="font-size:14px;color:#aaa;line-height:1.8;text-align:left;margin-bottom:20px">
+      本工具为临床医疗文书模板管理助手，旨在协助执业医师提高电子病历录入效率。<br><br>
+      <strong>请勿在模板中包含患者身份信息</strong>（姓名、病历号、身份证号等）。<br>
+      模板中的占位符（<code>___</code>）应在录入电子病历后替换为实际数值。<br>
+      最终病历内容须由临床医生审核确认后录入医院信息系统。<br><br>
+      本软件不涉及患者隐私数据的采集、传输或云端存储，所有数据仅保存在您的设备本地。
+    </p>
+    <button class="btn" id="disclaimerAccept">已知悉并同意</button>
   </div>
 </div>
 
@@ -300,8 +246,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <button class="btn" id="ocrPaste" style="background:#3a3a5a">粘贴</button>
     <button class="btn" id="ocrRetake" style="background:#3a3a5a">重拍</button>
     <button class="btn" id="ocrLibrary" style="background:#3a3a5a">相册</button>
-    <button class="btn" id="ocrNormalize" style="background:#3a3a5a">规范化</button>
-    <button class="btn" id="ocrAutoBtn" style="background:#4a6a4a;display:none">自动识别</button>
     <button class="btn" id="ocrGenerate" style="background:#7c8aff">生成二维码</button>
   </div>
 </div>
@@ -315,7 +259,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
   <textarea class="temp-editor" id="voiceEditor" placeholder="语音识别结果将显示在此处，可直接编辑修改..."></textarea>
   <div class="temp-actions">
     <button class="btn" id="voiceClear">清除重录</button>
-    <button class="btn" id="voiceNormalize" style="background:#3a3a5a">规范化</button>
     <button class="btn" id="voiceGenerate" style="background:#7c8aff">生成二维码</button>
   </div>
 </div>
@@ -325,10 +268,6 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
   <div class="qr-container">
     <div class="qr-white" id="tempQrWhite"></div>
     <div class="l3-meta" id="tempQrMeta"></div>
-    <div class="auto-advance-row" id="autoAdvanceRow" style="display:none">
-      <button class="auto-advance-switch" id="autoAdvanceToggle"></button>
-      <span class="auto-advance-label" id="autoAdvanceLabel">扫码后自动切换下一张</span>
-    </div>
     <div class="split-nav" id="splitNav" style="display:none">
       <button class="split-nav-btn" id="splitPrev">&#x25C0;</button>
       <span class="split-indicator" id="splitIndicator"></span>
@@ -363,30 +302,201 @@ var STORAGE_KEY = 'qrlib_v25';
 var RECENT_KEY = 'qrlib_v25_recent';
 var PIN_KEY = 'qrlib_v25_pin';
 
-function getRecent(){try{return JSON.parse(localStorage.getItem(RECENT_KEY))||[]}catch(e){return[]}}
-function addRecent(catId,itemId,catName,itemName,itemText){
-  var r=getRecent().filter(function(e){return e.itemId!==itemId});
-  r.unshift({catId:catId,itemId:itemId,catName:catName,itemName:itemName,text:itemText,ts:Date.now()});
-  if(r.length>10)r.length=10;
-  localStorage.setItem(RECENT_KEY,JSON.stringify(r));
+// ==================== PIN Lock ====================
+function hashPin(pin){var h=0;for(var i=0;i<pin.length;i++){h=((h<<5)-h)+pin.charCodeAt(i);h|=0}return h.toString(36)}
+
+function hasPin(){return !!localStorage.getItem(PIN_KEY)}
+
+function setupPin(pin){
+  var ph=hashPin(pin);
+  localStorage.setItem(PIN_KEY,ph);
+  var s=Date.now().toString(36);
+  sessionStorage.setItem('qrlib_session',s);
 }
-var FAV_CAT_ID='__fav__';
-function getFavCat(){var d=load();return d.categories.find(function(c){return c.id===FAV_CAT_ID})||null}
-function ensureFavCat(){
-  var d=load();
-  if(!d.categories.some(function(c){return c.id===FAV_CAT_ID})){
-    d.categories.unshift({id:FAV_CAT_ID,name:'收藏夹',order:-1,items:[]});
-    save(d);
+
+function verifyPin(pin){
+  var stored=localStorage.getItem(PIN_KEY);
+  return stored===hashPin(pin);
+}
+
+function isUnlocked(){
+  return !!sessionStorage.getItem('qrlib_session');
+}
+
+function resetPin(){
+  localStorage.removeItem(PIN_KEY);
+  sessionStorage.removeItem('qrlib_session');
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function changePinStored(oldPin,newPin){
+  if(!verifyPin(oldPin))return false;
+  localStorage.setItem(PIN_KEY,hashPin(newPin));
+  return true;
+}
+
+var pinInput='';
+var pinMode='verify'; // 'verify' | 'setup' | 'confirm' | 'changeOld' | 'changeNew'
+var pinSetupValue='';
+
+function showPinOverlay(mode){
+  pinMode=mode;pinInput='';pinSetupValue='';
+  var ov=document.getElementById('pinOverlay');
+  var title=document.getElementById('pinTitle');
+  var subtitle=document.getElementById('pinSubtitle');
+  var error=document.getElementById('pinError');
+  var reset=document.getElementById('pinReset');
+  ov.classList.remove('hidden');
+  error.textContent='';
+  updatePinDots();
+  if(mode==='setup'){
+    title.textContent='设置应用密码';subtitle.textContent='请设置4位数字密码以保护模板数据';reset.style.display='none';
+  }else if(mode==='confirm'){
+    title.textContent='确认应用密码';subtitle.textContent='请再次输入4位数字密码确认';reset.style.display='none';
+  }else if(mode==='verify'){
+    title.textContent='输入应用密码';subtitle.textContent='请输入4位数字密码以解锁应用';reset.style.display=hasPin()?'block':'none';
+  }else if(mode==='changeOld'){
+    title.textContent='修改密码';subtitle.textContent='请输入当前密码';reset.style.display='none';
+  }else if(mode==='changeNew'){
+    title.textContent='设置新密码';subtitle.textContent='请输入新的4位数字密码';reset.style.display='none';
   }
 }
-function isFaved(itemId){var fc=getFavCat();return fc?fc.items.some(function(i){return i.id===itemId}):false}
-function toggleFavItem(catId,itemId,catName,itemName,itemText,tags){
-  var d=load();var fc=d.categories.find(function(c){return c.id===FAV_CAT_ID});
-  if(!fc){ensureFavCat();d=load();fc=d.categories.find(function(c){return c.id===FAV_CAT_ID})}
-  var idx=fc.items.findIndex(function(i){return i.id===itemId});
-  if(idx>=0){fc.items.splice(idx,1);save(d);return false}
-  else{fc.items.push({id:itemId,name:itemName,text:itemText,order:fc.items.length,tags:tags||[]});save(d);return true}
+
+function hidePinOverlay(){
+  document.getElementById('pinOverlay').classList.add('hidden');
 }
+
+function updatePinDots(){
+  var dots=document.getElementById('pinDots').querySelectorAll('.pin-dot');
+  for(var i=0;i<dots.length;i++){
+    dots[i].classList.toggle('filled',i<pinInput.length);
+    dots[i].classList.remove('error');
+  }
+}
+
+function shakePinDots(){
+  var dots=document.getElementById('pinDots').querySelectorAll('.pin-dot');
+  dots.forEach(function(d){d.classList.add('error')});
+  setTimeout(function(){dots.forEach(function(d){d.classList.remove('error')});updatePinDots()},400);
+}
+
+function handlePinInput(key){
+  if(key==='del'){
+    if(pinInput.length>0)pinInput=pinInput.slice(0,-1);
+    updatePinDots();
+    return;
+  }
+  if(pinInput.length>=4)return;
+  pinInput+=key;
+  updatePinDots();
+  if(pinInput.length===4){
+    setTimeout(function(){processPin()},150);
+  }
+}
+
+function processPin(){
+  var error=document.getElementById('pinError');
+  if(pinMode==='setup'){
+    pinSetupValue=pinInput;pinInput='';
+    updatePinDots();
+    showPinOverlay('confirm');
+  }else if(pinMode==='confirm'){
+    if(pinInput===pinSetupValue){
+      setupPin(pinInput);
+      hidePinOverlay();
+      initApp();
+    }else{
+      error.textContent='两次输入的密码不一致，请重新设置';
+      pinInput='';pinSetupValue='';
+      updatePinDots();
+      showPinOverlay('setup');
+    }
+  }else if(pinMode==='verify'){
+    if(verifyPin(pinInput)){
+      var s=Date.now().toString(36);
+      sessionStorage.setItem('qrlib_session',s);
+      hidePinOverlay();
+      initApp();
+    }else{
+      error.textContent='密码错误，请重试';
+      pinInput='';
+      shakePinDots();
+    }
+  }else if(pinMode==='changeOld'){
+    if(verifyPin(pinInput)){
+      pinInput='';
+      updatePinDots();
+      showPinOverlay('changeNew');
+    }else{
+      error.textContent='当前密码错误';
+      pinInput='';
+      shakePinDots();
+    }
+  }else if(pinMode==='changeNew'){
+    pinSetupValue=pinInput;pinInput='';
+    updatePinDots();
+    // Confirm new PIN
+    pinMode='changeNewConfirm';
+    document.getElementById('pinTitle').textContent='确认新密码';
+    document.getElementById('pinSubtitle').textContent='请再次输入新密码确认';
+  }else if(pinMode==='changeNewConfirm'){
+    if(pinInput===pinSetupValue){
+      localStorage.setItem(PIN_KEY,hashPin(pinInput));
+      hidePinOverlay();
+      toast('密码已修改');
+    }else{
+      document.getElementById('pinError').textContent='两次输入的密码不一致';
+      pinInput='';pinSetupValue='';
+      updatePinDots();
+      pinMode='changeNew';
+      document.getElementById('pinTitle').textContent='设置新密码';
+      document.getElementById('pinSubtitle').textContent='请输入新的4位数字密码';
+    }
+  }
+}
+
+// Wire up PIN pad
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.pin-key').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      handlePinInput(btn.getAttribute('data-key'));
+    });
+  });
+  document.getElementById('pinReset').addEventListener('click',function(){
+    if(confirm('重置密码将清除应用内全部数据（模板、分类等）。此操作不可撤销。\n\n建议先导出数据备份（JSON导出）。\n\n确定要重置吗？')){
+      resetPin();
+      pinInput='';pinSetupValue='';
+      updatePinDots();
+      showPinOverlay('setup');
+      toast('数据已清除，请设置新密码');
+    }
+  });
+
+  // Check PIN on startup
+  if(!hasPin()){
+    showPinOverlay('setup');
+  }else if(!isUnlocked()){
+    showPinOverlay('verify');
+  }else{
+    hidePinOverlay();
+    initApp();
+  }
+});
+
+// Called after PIN is verified or when already unlocked
+function initApp(){
+  hidePinOverlay();
+  // App init happens via the existing flow below
+}
+
+// Keyboard support for PIN
+document.addEventListener('keydown',function(e){
+  var ov=document.getElementById('pinOverlay');
+  if(ov.classList.contains('hidden'))return;
+  if(e.key>='0'&&e.key<='9'){handlePinInput(e.key)}
+  else if(e.key==='Backspace'||e.key==='Delete'){handlePinInput('del')}
+  else if(e.key==='Enter'&&pinInput.length===4){processPin()}
+});
 
 // ==================== Data ====================
 function load(){
@@ -423,70 +533,35 @@ var currentCatId=null,currentItemId=null;
 var isSearchMode=false;
 
 function goTo(page,title,showBack){
-  document.getElementById('page-login').classList.remove('active');
   pageL1.classList.remove('active');pageL2.classList.remove('active');pageL3.classList.remove('active');
   document.getElementById('page-temp-ocr').classList.remove('active');document.getElementById('page-temp-voice').classList.remove('active');document.getElementById('page-temp-qr').classList.remove('active');
   page.classList.add('active');
   navTitle.textContent=title;
   if(showBack){navBack.classList.add('visible')}else{navBack.classList.remove('visible')}
   addBtn.classList.remove('visible');
-  // Show search button on L1 and L2 pages
-  var searchBtn=document.getElementById('navSearchBtn');
-  var searchWrap=document.getElementById('searchWrap');
-  if(page===pageL1||page===pageL2){searchBtn.classList.add('visible')}else{searchBtn.classList.remove('visible')}
-  searchWrap.classList.remove('open');
 }
 
 navBack.addEventListener('click',function(){
   if(pageL3.classList.contains('active')){
-    if(isSearchMode){
-      goTo(pageL2,'搜索结果',true);
-      window._searchRerun();
-    }else{
-      renderL2(currentCatId);
-      goTo(pageL2,findCat(currentCatId).name,true);
-      addBtn.classList.add('visible');
-    }
+    renderL2(currentCatId);
+    goTo(pageL2,findCat(currentCatId).name,true);
+    addBtn.classList.add('visible');
   }else if(pageL2.classList.contains('active')){
-    if(isSearchMode){
-      isSearchMode=false;
-      document.getElementById('searchWrap').classList.remove('open');
-      document.getElementById('nameSearchInput').value='';
-      document.getElementById('contentSearchInput').value='';
-      if(currentCatId){renderL2(currentCatId);addBtn.classList.add('visible')}
-      else{renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible')}
-      return;
-    }
-    renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible');
+    if(isSearchMode){isSearchMode=false}
+    renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible');
   }else if(document.getElementById('page-temp-qr').classList.contains('active')){
     if(tempLastInput==='ocr')goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);
     else if(tempLastInput==='voice')goTo(document.getElementById('page-temp-voice'),'语音输入',true);
-    else {goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible')}
+    else {goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible')}
   }else if(document.getElementById('page-temp-ocr').classList.contains('active')||document.getElementById('page-temp-voice').classList.contains('active')){
-    renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible');
+    renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible');
   }
 });
 
 // ==================== L1: Categories ====================
 function renderL1(){
   var data=load();sortCats(data);
-  var oldSec=document.getElementById('recentHeader');if(oldSec)oldSec.remove();
-  var oldGrid=document.getElementById('recentGrid');if(oldGrid)oldGrid.remove();
   catGrid.innerHTML='';
-  // Recent items
-  var recent=getRecent();if(recent.length>0){
-    var sec=document.createElement('div');sec.className='section-header';sec.id='recentHeader';sec.innerHTML='<span class="sh-title">最近使用</span>';
-    catGrid.parentNode.insertBefore(sec,catGrid);
-    var mg=document.createElement('div');mg.className='mini-grid';mg.id='recentGrid';
-    recent.forEach(function(r){
-      var card=document.createElement('div');card.className='mini-card';
-      var hue=(r.catName.charCodeAt(0)||0)*37%360;card.style.backgroundColor='hsl('+hue+',40%,38%)';
-      card.textContent=r.itemName;
-      card.addEventListener('click',(function(ri){return function(e){currentCatId=ri.catId;currentItemId=ri.itemId;renderL3(ri.catId,ri.itemId);goTo(pageL3,ri.itemName,true)}})(r));
-      mg.appendChild(card);
-    });
-    catGrid.parentNode.insertBefore(mg,catGrid);
-  }
   if(data.categories.length===0){l1Empty.style.display='block';addBtn.classList.add('visible');return}
   l1Empty.style.display='none';
   data.categories.forEach(function(cat,i){
@@ -569,48 +644,22 @@ function moveItemToCategory(srcCatId,itemId,tgtCatId){
 }
 
 // ==================== L2: Items ====================
-var favTagFilter=null;
 function renderL2(catId){
   var cat=findCat(catId);if(!cat)return;
   cat.items.sort(function(a,b){return a.order-b.order});
-  // Tag filter bar for favorites
-  var oldTagBar=document.getElementById('favTagBar');if(oldTagBar)oldTagBar.remove();
-  if(catId===FAV_CAT_ID&&cat.items.length>0){
-    var allTags={};
-    cat.items.forEach(function(i){if(i.tags){i.tags.forEach(function(t){allTags[t]=(allTags[t]||0)+1})}});
-    var tagKeys=Object.keys(allTags);
-    if(tagKeys.length>0){
-      var tb=document.createElement('div');tb.id='favTagBar';tb.style.cssText='display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;margin-bottom:12px;padding-bottom:4px;-webkit-overflow-scrolling:touch';
-      tb.innerHTML='<div class="fav-tag-all" style="font-size:12px;padding:4px 12px;border-radius:12px;cursor:pointer;white-space:nowrap;'+(favTagFilter?'background:#3a3a5a;color:#aaa':'background:#7c8aff;color:#fff')+'">全部('+cat.items.length+')</div>';
-      tagKeys.forEach(function(t){
-        tb.innerHTML+='<div class="fav-tag" style="font-size:12px;padding:4px 12px;border-radius:12px;cursor:pointer;white-space:nowrap;'+(favTagFilter===t?'background:#7c8aff;color:#fff':'background:#3a3a5a;color:#aaa')+'">'+escHtml(t)+'('+allTags[t]+')</div>';
-      });
-      itemGrid.parentNode.insertBefore(tb,itemGrid);
-      tb.querySelector('.fav-tag-all').addEventListener('click',function(){favTagFilter=null;renderL2(catId)});
-      tb.querySelectorAll('.fav-tag').forEach(function(el){
-        el.addEventListener('click',function(){favTagFilter=this.textContent.replace(/\(\d+\)/,'');renderL2(catId)});
-      });
-    }
-  }
   itemGrid.innerHTML='';
-  // Filter by tag if active
-  var items=cat.items;
-  if(favTagFilter&&catId===FAV_CAT_ID){
-    items=cat.items.filter(function(i){return i.tags&&i.tags.indexOf(favTagFilter)>=0});
-  }
   // Single item: 1 column centered; multiple: 2 columns
-  itemGrid.style.gridTemplateColumns=items.length===1?'1fr':'1fr 1fr';
-  itemGrid.style.maxWidth=items.length===1?'200px':'';itemGrid.style.margin=items.length===1?'0 auto':'';
+  itemGrid.style.gridTemplateColumns=cat.items.length===1?'1fr':'1fr 1fr';
+  itemGrid.style.maxWidth=cat.items.length===1?'200px':'';itemGrid.style.margin=cat.items.length===1?'0 auto':'';
   var data=load();var catIdx=data.categories.findIndex(function(c){return c.id===catId});
   if(catIdx<0)catIdx=0;
   var catHue=catIdx*Math.floor(360/Math.max(data.categories.length,1));
 
-  items.forEach(function(item,i){
+  cat.items.forEach(function(item,i){
     var card=document.createElement('div');
     card.className='item-card';
-    card.style.backgroundColor=itemColor(catHue,i,items.length);
-    var extras='';if(item.tags&&item.tags.length>0)extras=' <span style="font-size:10px;color:rgba(255,255,255,.4)">#'+item.tags.join(' #')+'</span>';
-    card.innerHTML='<div class="item-name">'+escHtml(item.name)+'</div><div class="item-meta">'+(item.text?item.text.length:0)+' 字'+extras+'</div>';
+    card.style.backgroundColor=itemColor(catHue,i,cat.items.length);
+    card.innerHTML='<div class="item-name">'+escHtml(item.name)+'</div><div class="item-meta">'+(item.text?item.text.length:0)+' 字</div>';
     card.setAttribute('data-iid',item.id);
     card.setAttribute('data-cid',catId);
 
@@ -630,37 +679,8 @@ function renderL2(catId){
 // ==================== L3: QR Detail ====================
 function renderL3(catId,itemId){
   var cat=findCat(catId);var item=findItem(cat,itemId);if(!item)return;
-  addRecent(catId,itemId,cat.name,item.name,item.text);
   document.getElementById('qrWhite').innerHTML='';
   document.getElementById('l3Meta').textContent=item.text.length+' 字';
-  var fb=document.getElementById('favItemBtn');
-  var favItem=isFaved(itemId);
-  if(favItem){fb.classList.add('faved');fb.innerHTML='&#x2665;'}else{fb.classList.remove('faved');fb.innerHTML='&#x2661;'}
-  fb.onclick=function(){
-    var fc=getFavCat();var fi=fc?fc.items.find(function(i){return i.id===itemId}):null;
-    if(fi){
-      // Already favorited - show options: 编辑标签 / 取消收藏
-      var existing=fi.tags?fi.tags.join('，'):'';
-      var action=prompt('标签（逗号分隔）:\n常用 | 普外 | 肿瘤 | 骨科 | 妇产 | 心内 | 呼吸 | 消化\n\n留空则取消收藏',existing);
-      if(action===null)return;
-      if(action.trim()===''){
-        toggleFavItem(catId,itemId,cat.name,item.name,item.text);
-        fb.classList.remove('faved');fb.innerHTML='&#x2661;';toast('已取消收藏');renderL1();
-      }else{
-        var tags=action.split(/[,，]/).map(function(t){return t.trim()}).filter(function(t){return t});
-        var d=load();var fc2=d.categories.find(function(c){return c.id===FAV_CAT_ID});
-        if(fc2){var fi2=fc2.items.find(function(i){return i.id===itemId});if(fi2)fi2.tags=tags;save(d)}
-        toast('标签已更新');renderL1();
-      }
-    }else{
-      // Not favorited - prompt for tags
-      var tagsIn=prompt('添加标签（逗号分隔，可选）:\n常用 | 普外 | 肿瘤 | 骨科 | 妇产 | 心内 | 呼吸 | 消化','');
-      if(tagsIn===null)return;
-      var tags=tagsIn.trim()?tagsIn.split(/[,，]/).map(function(t){return t.trim()}).filter(function(t){return t}):[];
-      toggleFavItem(catId,itemId,cat.name,item.name,item.text,tags);
-      fb.classList.add('faved');fb.innerHTML='&#x2665;';toast('已收藏');renderL1();
-    }
-  };
   document.getElementById('l3PrivacyHint').textContent='此二维码含医疗文本，使用后请关闭页面\n请确认模板中的占位符已替换为实际数值后再录入';
   genQR(item.text,Math.min(window.innerWidth*0.8,500),function(c){if(c)document.getElementById('qrWhite').appendChild(c)});
   document.getElementById('editItemBtn').onclick=function(){showItemEditor(catId,itemId)};
@@ -670,50 +690,6 @@ function renderL3(catId,itemId){
     cat.items=cat.items.filter(function(i){return i.id!==itemId});
     var d=load();var ci=d.categories.findIndex(function(c){return c.id===catId});if(ci>=0)d.categories[ci]=cat;save(d);
     renderL2(catId);goTo(pageL2,cat.name,true);addBtn.classList.add('visible');toast('已删除');
-  };
-  var hb=document.getElementById('historyBtn');
-  if(item._history&&item._history.length>0){
-    hb.style.display='inline-block';
-    hb.onclick=function(){showVersionHistory(catId,itemId)};
-  }else{hb.style.display='none'}
-}
-
-function showVersionHistory(catId,itemId){
-  var cat=findCat(catId);var item=findItem(cat,itemId);if(!item||!item._history)return;
-  var h='<div class="modal-header"><h2>历史版本</h2><button class="modal-close-btn" id="histClose">&times;</button></div>';
-  h+='<div style="color:#888;font-size:11px;margin:0 0 8px 0">保留最近3个版本</div>';
-  item._history.forEach(function(v,i){
-    var d=new Date(v.ts);
-    var ds=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-    h+='<div class="settings-item hist-ver" data-vidx="'+i+'" style="cursor:pointer;flex-direction:column;align-items:flex-start;gap:2px">';
-    h+='<span style="font-size:12px;color:#aaa">版本'+(item._history.length-i)+' — '+ds+'</span>';
-    h+='<span style="font-size:13px;color:#e0e0e0">'+escHtml(v.text.substring(0,60))+(v.text.length>60?'...':'')+'</span>';
-    h+='<span style="font-size:11px;color:#666">'+v.text.length+' 字</span></div>';
-  });
-  h+='<button class="btn-sm danger" id="histClearAll" style="width:100%;margin-top:8px">清除所有历史版本</button>';
-  document.getElementById('settingsContent').innerHTML=h;
-  document.getElementById('settingsModal').classList.add('open');
-  document.getElementById('histClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
-  document.querySelectorAll('.hist-ver').forEach(function(el){
-    el.addEventListener('click',function(){
-      var vi=parseInt(this.dataset.vidx);
-      var v=item._history[vi];
-      var d=load();var ci=d.categories.findIndex(function(c){return c.id===catId});if(ci<0)return;
-      var it=findItem(d.categories[ci],itemId);if(!it)return;
-      // Archive current before revert
-      if(!it._history)it._history=[];
-      it._history.unshift({text:it.text,ts:Date.now()});if(it._history.length>3)it._history.length=3;
-      it.text=v.text;
-      save(d);document.getElementById('settingsModal').classList.remove('open');
-      renderL3(catId,itemId);toast('已恢复至版本'+(item._history.length-vi));
-    });
-  });
-  document.getElementById('histClearAll').onclick=function(){
-    if(!confirm('确定清除所有历史版本？此操作不可撤销。'))return;
-    var d=load();var ci=d.categories.findIndex(function(c){return c.id===catId});if(ci<0)return;
-    var it=findItem(d.categories[ci],itemId);if(it)it._history=[];
-    save(d);document.getElementById('settingsModal').classList.remove('open');
-    renderL3(catId,itemId);toast('已清除版本历史');
   };
 }
 
@@ -741,24 +717,25 @@ function showItemEditor(catId,itemId,prefillText){
     if(!name){toast('请输入名称');return}
     if(!text){toast('请输入文本内容');return}
     var d=load();var ci=d.categories.findIndex(function(c){return c.id===catId});
+    // Check for duplicate names in same category
+    if(d.categories[ci]){
+      var isDup=false;
+      d.categories[ci].items.forEach(function(it){
+        if(it.name===name && (isNew || it.id!==itemId)){isDup=true;}
+      });
+      if(isDup){toast('该分类下已存在同名子类「'+name+'」，请修改名称');return}
+    }
     if(ci<0){toast('分类不存在');return}
     if(isNew){
       d.categories[ci].items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name,text:text,order:d.categories[ci].items.length});
       currentCatId=catId;
     }else{
-      var it=findItem(d.categories[ci],itemId);if(it){
-        if(it.text!==text){
-          if(!it._history)it._history=[];
-          it._history.unshift({text:it.text,ts:Date.now()});
-          if(it._history.length>3)it._history.length=3;
-        }
-        it.name=name;it.text=text;
-      }
+      var it=findItem(d.categories[ci],itemId);if(it){it.name=name;it.text=text}
     }
     save(d);
     document.getElementById('settingsModal').classList.remove('open');
     renderL2(catId);
-    if(pageL1.classList.contains('active')){renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible')}
+    if(pageL1.classList.contains('active')){renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible')}
     else if(!pageL2.classList.contains('active')){goTo(pageL2,d.categories[ci].name,true);addBtn.classList.add('visible');isSearchMode=false}
     toast(isNew?'已添加: '+name:'已更新');
   };
@@ -781,6 +758,11 @@ function openSettings(){
   var data=load();
   var h='<div class="modal-header"><h2>设置</h2><button class="modal-close-btn" id="closeSettings">&times;</button></div>';
 
+  // Presets
+  h+='<div class="section-title">快速开始</div>';
+  h+='<button class="btn-sm" id="loadPresets" style="width:100%;margin-bottom:4px">载入医院常用模板</button>';
+  h+='<div style="font-size:11px;color:#555;margin-bottom:12px">不会覆盖已有数据，追加到末尾</div>';
+
   // Categories
   h+='<div class="section-title">分类管理</div>';
   h+='<div class="settings-list" id="settingsCatList">';
@@ -800,13 +782,12 @@ function openSettings(){
   h+='<div id="exportArea" style="display:none;margin-bottom:8px"><textarea id="exportText" style="width:100%;height:120px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#aaa;font-size:11px;padding:8px;resize:none" readonly></textarea><button class="btn-sm" id="copyExportBtn" style="width:100%;margin-top:4px">复制到剪贴板</button></div>';
   h+='<button class="btn-sm secondary" id="importBtn" style="width:100%;margin-bottom:4px">导入（粘贴JSON）</button>';
   h+='<div id="importArea" style="display:none;margin-bottom:8px"><textarea id="importText" placeholder="在此粘贴 JSON..." style="width:100%;height:120px;background:#0f0f1a;border:1px solid #333;border-radius:8px;color:#e0e0e0;font-size:12px;padding:8px;resize:none"></textarea><button class="btn-sm" id="doImportBtn" style="width:100%;margin-top:4px">执行导入</button></div>';
-  h+='<div class="section-title">账户安全</div>';
-  h+='<button class="btn-sm secondary" id="changePwdBtn" style="width:100%;margin-bottom:4px">修改登录密码</button>';
-  h+='<div style="font-size:11px;color:#555;margin-bottom:4px">修改后下次登录生效</div>';
-  h+='<button class="btn-sm secondary" id="setupPinBtn" style="width:100%;margin-bottom:4px">'+(localStorage.getItem(PIN_KEY)?'修改访问密码（数字）':'设置访问密码（数字）')+'</button>';
-  h+='<div style="font-size:11px;color:#555;margin-bottom:12px">4位数字密码，登录后的二次验证</div>';
-
   h+='<div class="section-title">数据安全</div>';
+  if(hasPin()){
+    h+='<button class="btn-sm secondary" id="changePinBtn" style="width:100%;margin-bottom:4px">修改应用密码</button>';
+  }else{
+    h+='<button class="btn-sm secondary" id="setupPinBtn" style="width:100%;margin-bottom:4px">设置应用密码</button>';
+  }
   h+='<button class="btn-sm danger" id="clearAllDataBtn" style="width:100%">清除全部数据</button>';
   h+='<div style="font-size:11px;color:#555;margin-top:4px">删除所有分类和子类数据，无法恢复</div>';
 
@@ -823,6 +804,14 @@ function openSettings(){
     var name=prompt('新分类名称：');if(!name||!name.trim())return;
     var d=load();d.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:d.categories.length,items:[]});save(d);
     renderL1();openSettings();toast('已添加分类: '+name.trim());
+  };
+
+  // Load presets (built-in, no server needed)
+  document.getElementById('loadPresets').onclick=function(){
+    var d=load();
+    if(d.categories.length>0){if(!confirm('已有数据，追加到末尾？'))return}
+    var p={categories:getPresets()};
+    d.categories=d.categories.concat(p.categories);save(d);renderL1();openSettings();toast('已追加 '+p.categories.length+' 个分类');
   };
 
   // Import from file (replace all data)
@@ -868,35 +857,18 @@ function openSettings(){
     save({categories:[]});renderL1();openSettings();toast('已清除全部数据');
   };
 
-  // Change password
-  document.getElementById('changePwdBtn').onclick=function(){
-    var oldPass=prompt('请输入当前密码：');
-    if(!oldPass)return;
-    var d=getLoginData();
-    if(!checkLogin(d.user,oldPass)){toast('当前密码错误');return}
-    var newPass=prompt('请输入新密码（至少4位）：');
-    if(!newPass||newPass.length<4){toast('密码长度至少4位');return}
-    var confirmPass=prompt('请再次输入新密码：');
-    if(newPass!==confirmPass){toast('两次密码不一致');return}
-    saveLoginData({user:d.user,passHash:hashStr(newPass)});
-    toast('密码已修改，下次登录生效');
-  };
-
-  // Setup/change PIN
-  document.getElementById('setupPinBtn').onclick=function(){
-    settingsModal.classList.remove('open');
-    var existingPin=localStorage.getItem(PIN_KEY);
-    if(existingPin){
-      pinStep='change';pinInput='';pinConfirm='';pinSaved=existingPin;resetPinUI();
-      document.getElementById('pinTitle').textContent='修改访问密码';
-      document.getElementById('pinSub').textContent='请输入当前4位数字密码';
-    }else{
-      pinStep='setup';pinInput='';pinConfirm='';pinSaved='';resetPinUI();
-      document.getElementById('pinTitle').textContent='设置访问密码';
-      document.getElementById('pinSub').textContent='输入4位数字密码';
-    }
-    document.getElementById('pinOverlay').classList.add('active');
-  };
+  // PIN management buttons
+  if(hasPin()){
+    document.getElementById('changePinBtn').onclick=function(){
+      settingsModal.classList.remove('open');
+      showPinOverlay('changeOld');
+    };
+  }else{
+    document.getElementById('setupPinBtn').onclick=function(){
+      settingsModal.classList.remove('open');
+      showPinOverlay('setup');
+    };
+  }
 
   settingsModal.classList.add('open');
 }
@@ -946,8 +918,93 @@ function showCatItemsEditor(catId){
 
 // ==================== Presets ====================
 function getPresets(){return [
-  {id:'c_example',name:'示例模板',order:0,items:[
-    {id:'c_example_1',name:'使用引导 - 点击查看',text:'欢迎使用病历书写助手！\n\n这是一款临床医疗文书模板管理助手。您可以：\n\n1. 创建自己的分类（如”术后记录””入院评估”等）\n2. 在每个分类下添加模板子类\n3. 点击任意模板生成二维码\n4. 在工作站电脑上扫描二维码，即可将文本快速导入电子病历系统\n\n所有数据仅保存在您的设备本地，完全离线运行。\n\n请根据科室需求自由建立您的模板库。',order:0}
+  {id:'c1',name:'抗肿瘤治疗前小结',order:0,items:[
+    {id:'c1-1',name:'治疗前评估与方案制定',text:'综合患者近期各项影像学、实验室检查及病理分子分型评估，遵照上级医师查房意见，经MDT多学科专家团队深入讨论，充分结合患方意愿诉求，制定并执行当前抗肿瘤治疗方案。',order:0},
+    {id:'c1-2',name:'治疗期间监测重点',text:'治疗期间需密切监测血常规、肝肾功能、心电图及肿瘤标志物。重点观察化疗引起的骨髓抑制及胃肠道反应；警惕免疫治疗可能诱发的免疫性肺炎、肠炎等系统性器官损伤；注意靶向治疗相关的皮肤毒性、高血压及蛋白尿。若出现异常，将积极给予对症支持治疗并动态调整方案。',order:1}
+  ]},
+  {id:'c2',name:'输血评估',order:1,items:[
+    {id:'c2-1',name:'输血后疗效评估',text:'患者今日复查血常规：RBC：___×10¹²/L；HB：___g/L；PLT：___×10⁹/L；相关指标较前有所回升。临床症状：患者面色好转，精神状态改善，无新增缺氧或贫血相关不适，生命体征平稳。可确认为输注有效。',order:0}
+  ]},
+  {id:'c3',name:'MDT-食管癌',order:2,items:[
+    {id:'c3-1',name:'可手术-影像学评估',text:'影像科杜光舟副主任医师：影像学（CT/食管钡餐）提示食管胸上/中/下段占位，病变局限、外侵不明显，双侧颈部、纵隔及腹腔未见明确融合肿大淋巴结，未见远处器官转移迹象。影像分期提示中期/局部晚期，具备外科手术切除的解剖学条件。',order:0},
+    {id:'c3-2',name:'可手术-病理评估',text:'病理科况丽平主任医师：食管活检病理提示：鳞状细胞癌。细胞具异型性，明确恶性肿瘤诊断。后续待手术切除标本送检后，进一步明确浸润深度、淋巴结转移情况及切缘状态。',order:1},
+    {id:'c3-3',name:'可手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：结合影像分期与相关指南，该患者肿瘤评估为可切除局部病变，目前暂无明确的放疗绝对指征，同意首选外科手术治疗。若术后病理提示切缘阳性或淋巴结转移，再行评估术后辅助放疗。如患者无手术意愿，可考虑行放射治疗。',order:2},
+    {id:'c3-4',name:'可手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前身体机能状态良好（ECOG 0-1分），影像学未见远处系统性转移。目前暂不考虑一线全身系统性化疗、免疫或靶向治疗，术后根据病理分期及高危因素，决定是否行辅助化疗或免疫维持治疗。',order:3},
+    {id:'c3-5',name:'可手术-麻醉评估',text:'麻醉科詹银周副主任医师：患者各项常规术前检查未见显著绝对异常，心肺储备功能尚可，无麻醉绝对禁忌证，可耐受全麻及胸腹联合手术，术中将密切监测循环及呼吸功能。',order:4},
+    {id:'c3-6',name:'可手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者食管癌诊断明确，影像分期提示局部可切除，无远处转移，全身各主要器官功能良好，无明显手术及麻醉禁忌。结合患方有手术意愿，诊疗计划如下：拟行机器人辅助食管癌根治术（McKeown术式），术后根据大病理结果指导下一步综合治疗。',order:5},
+    {id:'c3-7',name:'非手术-影像学评估',text:'影像科杜光舟副主任医师：影像学提示食管病变范围较长，局部管壁显著增厚，与周边组织（如气管/主动脉）界限不显，或伴纵隔/腹腔多发融合肿大淋巴结。解剖分期相对较晚，暂不推荐直接行根治性手术切除，建议先行全身系统治疗以争取降期机会。',order:6},
+    {id:'c3-8',name:'非手术-病理评估',text:'病理科况丽平主任医师：食管活检病理明确为鳞状细胞癌。细胞异型性明显，恶性度高。如临床拟行化疗联合免疫治疗，可加做PD-L1（CPS/TPS）等免疫相关标志物检测，以评估免疫治疗获益敏感度，指导精准用药。',order:7},
+    {id:'c3-9',name:'非手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：评估患者目前处于局部晚期阶段，直接手术难度大、风险高且R0切除率低。鉴于患者目前无明显局部梗阻或穿孔高危征象，赞同首选全身系统性化疗联合免疫治疗进行新辅助/转化治疗，暂不急于介入局部放疗。',order:8},
+    {id:'c3-10',name:'非手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前身体机能良好（ECOG 0-1分），能耐受系统药物治疗。化疗联合PD-1抑制剂对于局部晚期食管癌具有良好的降期和病理完全缓解（pCR）率。建议采用___（具体化免方案）行2-4周期治疗。',order:9},
+    {id:'c3-11',name:'非手术-MDT总结',text:'傅俊惠主任医师：综合各科意见，该患者诊断为食管局部晚期恶性肿瘤，目前直接行外科手术难度大、R0切除率低。为使患者最大程度获益，诊疗计划如下：暂缓直接手术，拟行“化疗+免疫治疗”作为新辅助/转化治疗。计划治疗2-4周期后重新复查影像学，动态评估肿瘤降期及缓解情况，若达到手术标准，则择期行胸腹腔镜联合食管癌根治术。',order:10}
+  ]},
+  {id:'c4',name:'MDT-结肠癌',order:3,items:[
+    {id:'c4-1',name:'手术-影像学评估',text:'影像科杜光舟副主任医师：影像学提示___结肠占位，局部肠管管腔狭窄，近端肠管伴有不同程度积气积液（提示潜在梗阻/无明显梗阻）。病变浸润局限于局部，肠周/肠系膜可见肿大淋巴结，腹腔未见明确融合肿大淋巴结，肝、肺等远处器官未见系统性转移迹象。解剖评估具备外科手术切除条件。',order:0},
+    {id:'c4-2',name:'手术-病理评估',text:'病理科况丽平主任医师：结肠活检病理提示：结肠腺癌，明确恶性肿瘤诊断。鉴于结肠癌诊疗规范，建议术后大病理加做错配修复蛋白（MMR/MSI状态）及RAS/BRAF基因检测，以指导术后分期及辅助化疗方案选择。',order:1},
+    {id:'c4-3',name:'手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：结肠癌对放射治疗敏感度较低，且肠管位置具有活动性，极易引起放射性肠炎。结合目前影像分期，该患者无任何放疗指征，赞同直接行外科手术切除。',order:2},
+    {id:'c4-4',name:'手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前未见远处系统性转移，暂无一线全身新辅助化疗、靶向或免疫治疗指征。结肠癌直接行全身化疗可能增加肠道穿孔、出血等严重并发症的风险。支持首选外科根治性手术治疗，术后根据病理分期（如高危Ⅱ期或Ⅲ期）再决定是否行辅助化疗。',order:3},
+    {id:'c4-5',name:'手术-麻醉评估',text:'麻醉科詹银周副主任医师：患者近期无明显急腹症表现，各项常规术前检查未见明显禁忌，心肺储备功能可。ASA分级评估为Ⅱ-Ⅲ级，无麻醉绝对禁忌证，可耐受全麻及腹腔镜结肠癌根治手术。',order:4},
+    {id:'c4-6',name:'手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者结肠癌诊断明确，影像提示局部可切除、无远处转移。鉴于结肠癌具有较高的潜在梗阻、穿孔及出血风险，且无新辅助治疗指征，应尽早手术切除。结合患方有明确手术意愿，诊疗计划如下：拟行腹腔镜___结肠癌根治术。术后密切关注肠功能恢复，并根据大病理结果指导下一步综合治疗。',order:5}
+  ]},
+  {id:'c5',name:'MDT-直肠癌',order:4,items:[
+    {id:'c5-1',name:'手术-影像学评估',text:'影像科杜光舟副主任医师：盆腔MRI提示直肠占位，病变浸润局限于管壁内。关键评估指标示：MRF（直肠系膜筋膜）阴性，未见明确受累；EMVI（直肠系膜内血管侵犯）阴性；盆腔未见明确融合肿大淋巴结，肝肺未见远处转移。影像学分期属于中期，解剖学上具备直接行根治性切除条件。',order:0},
+    {id:'c5-2',name:'手术-病理评估',text:'病理科况丽平主任医师：直肠活检病理提示：直肠腺癌，明确恶性肿瘤诊断。后续待外科根治术后，将对切缘（近端、远端及环周切缘）、淋巴结检出数目及错配修复蛋白（MMR/MSI状态）进行系统评估，以指导预后及辅助治疗。',order:1},
+    {id:'c5-3',name:'手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：结合盆腔MRI评估，患者目前MRF及EMVI均为阴性，暂无术前新辅助放化疗的绝对指征，赞同首选直接外科手术；若患者无手术意愿或后续评估中发现低位病变难以保留肛门，我科可随时介入并提供根治性放疗作为替代及补充方案。',order:2},
+    {id:'c5-4',name:'手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前未见全身远处系统性转移。鉴于外科评估可切除，支持直接行外科根治性手术治疗。术后将根据大病理的T、N分期及是否存在高危因素（如分化程度、神经侵犯等），再行评估是否需要行全量辅助化疗。',order:3},
+    {id:'c5-5',name:'手术-麻醉评估',text:'麻醉科詹银周副主任医师：患者各项常规术前检查无明显禁忌。ASA分级评估为Ⅱ-Ⅲ级，无麻醉绝对禁忌证，可耐受全麻及腹腔镜下直肠癌根治术。低位直肠手术时间可能较长，术中将加强气道及循环容量管理。',order:4},
+    {id:'c5-6',name:'手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者直肠癌诊断明确。盆腔MRI提示MRF及EMVI阴性，评估可切除，具备直接手术指征。结合患方意见，诊疗计划如下：首选直接行腹腔镜直肠癌根治术（拟行DIXON术式），术后根据大病理结果再行决定是否实施辅助综合治疗。',order:5},
+    {id:'c5-7',name:'非手术-影像学评估',text:'影像科杜光舟副主任医师：盆腔高分辨率MRI提示直肠占位，病变明显向外浸润。关键评估指标示：MRF（直肠系膜筋膜）受累/阳性，EMVI（脉管侵犯）阳性，伴盆腔侧支区域多发融合肿大淋巴结。影像分期提示为局部进展期直肠癌，解剖学上直接行根治性手术切除的R0切缘无法保证，建议先行全身系统治疗以争取肿瘤退缩与保肛机会。',order:6},
+    {id:'c5-8',name:'非手术-病理评估',text:'病理科况丽平主任医师：直肠活检病理明确为：直肠腺癌，细胞异型性明显。建议加做错配修复蛋白（MMR/MSI状态）检测。若提示为pMMR/MSS（错配修复完整/微卫星稳定），则支持常规新辅助方案；若为dMMR/MSI-H，则可考虑免疫治疗作为转化选择。',order:7},
+    {id:'c5-9',name:'非手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：按照常规临床指南，局部进展期直肠癌首选新辅助放化疗（nCRT）。但鉴于盆腔放疗可能带来明显的肠道放射性损伤、骨髓抑制及远期肛门括约肌功能减退，考虑患者对保肛及远期生活质量的诉求强烈，暂缓局部放疗，支持全身新辅助化疗（nCT）作为起始治疗。若化疗后降期不理想，我科可随时介入行补充放疗。',order:8},
+    {id:'c5-10',name:'非手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前身体机能状态良好（ECOG 0-1分）。新辅助化疗能达到较高肿瘤退缩率和R0切除率，且能规避放疗毒副作用，建议采用___方案规范治疗4-6周期。',order:9},
+    {id:'c5-11',name:'非手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者局部进展期直肠癌诊断明确，MRI提示MRF/EMVI阳性，直接手术难度大、复发风险高、保肛极其困难。为实现最大程度的肿瘤降期、提高R0切除率并尽量保留肛门功能，诊疗计划如下：暂缓直接手术，拟行4-6周期的规范化新辅助化疗。治疗期间每2-3周期动态复查、评估疗效，待肿瘤降期、边界清晰后，择期行腹腔镜直肠癌根治术。',order:10}
+  ]},
+  {id:'c6',name:'MDT-胃癌',order:5,items:[
+    {id:'c6-1',name:'非手术-影像学评估',text:'影像科杜光舟副主任医师：增强CT提示胃底贲门/体/窦部管壁显著增厚，结构僵硬，局部侵犯深达浆膜下层或外膜（T4a/T4b），或伴有胃周、腹腔干周围多发融合肿大淋巴结。影像分期提示局部晚期，直接手术难以保障R0切除，建议先行全身系统治疗以期消退淋巴结并缩小病灶。',order:0},
+    {id:'c6-2',name:'非手术-病理评估',text:'病理科况丽平主任医师：胃镜活检病理明确为：胃腺癌/低分化癌/印戒细胞癌。细胞异型性明显。如需行新辅助/转化治疗，建议加做HER2、MMR/MSI状态及PD-L1表达检测，以明确是否具备靶向（如曲妥珠单抗）或免疫治疗指征，指导精准用药。',order:1},
+    {id:'c6-3',name:'非手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：胃癌属于腹腔空腔脏器，且周围紧邻肝、肾、脊髓等重要器官，放射耐受量受限。根据国内外指南，局部进展期胃癌目前首选全身系统性化疗，暂无首选术前放疗的绝对指征。建议暂不介入局部放疗，支持首选全身药物治疗。',order:2},
+    {id:'c6-4',name:'非手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前身体机能良好（ECOG 0-1分）。基于循证依据，对于局部进展期胃癌，术前给予含铂类/氟尿嘧啶类的双药或三药联合方案（如FLOT/SOX等）进行新辅助化疗，或在此基础上联合免疫治疗，能显著提高病理完全缓解（pCR）率和远期生存率。建议规范治疗2-4周期。',order:3},
+    {id:'c6-5',name:'非手术-MDT总结',text:'傅俊惠主任医师：综合各科意见，该患者诊断为局部进展期胃癌，解剖分期较晚（伴明显外侵或融合淋巴结），直接手术导致R1/R2切除或非计划性扩大切除的风险高。为实现最大程度的肿瘤降期、控制微转移并提高R0切除率，诊疗计划如下：暂缓直接手术，拟行2-4周期的规范化新辅助化疗/转化治疗（必要时联合靶向或免疫治疗）。治疗期间规范评估疗效，待肿瘤降期、边界清晰后，择期行腹腔镜胃癌根治术（D2淋巴结清扫）。',order:4},
+    {id:'c6-6',name:'直接手术-影像学评估',text:'影像科杜光舟副主任医师：增强CT提示胃底贲门/体/窦部占位，局部管壁增厚，病变局限于管壁内，未见明确的周围脏器（如胰腺、横结肠）受累征象；胃周及腹腔干周围未见明确相互融合的肿大淋巴结，肝、肺、腹膜等远处器官未见系统性转移迹象。影像分期提示为可切除局部病变，具备外科根治性切除的解剖学条件。',order:5},
+    {id:'c6-7',name:'直接手术-病理评估',text:'病理科况丽平主任医师：胃镜活检病理明确为：胃腺癌/低分化癌/印戒细胞癌。细胞具异型性，间质浸润，明确恶性肿瘤诊断。后续待外科行根治性切除后，将对大病理标本进行精确的分期（T/N分期）、切缘状态、脉管神经浸润，以及HER2、MMR/MSI状态进行检测，以明确有无高危因素及术后辅助治疗指征。',order:6},
+    {id:'c6-8',name:'直接手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：结合当前影像分期，该患者评估为初治可切除胃癌，不伴有局部固定或无法切除的晚期解剖高危因素。根据国内外胃癌诊疗规范，目前暂无术前根治性或新辅助放疗指征，同意首选外科根治性手术治疗。',order:7},
+    {id:'c6-9',name:'直接手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前未见远处系统性转移，全身基础状况及机能状态良好（ECOG 0-1分）。根据目前的临床分期评估，暂无全身系统性新辅助化疗或转化治疗的绝对指征，支持直接行外科根治性手术。术后将根据大病理的最终分期结果，再行评估是否需要给予术后辅助化疗。',order:8},
+    {id:'c6-10',name:'直接手术-麻醉评估',text:'麻醉科詹银周副主任医师：患者各项常规术前检查（心电图、胸片、肺功能、生化及凝血指标等）未见显著手术禁忌，主要脏器储备功能良好。ASA分级评估为Ⅱ-Ⅲ级，无麻醉绝对禁忌证，可耐受全麻及腹腔镜下胃癌根治术。术中将常规做好容量管理与监测。',order:9},
+    {id:'c6-11',name:'直接手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者胃恶性肿瘤诊断明确，影像提示局部病灶可切除、无远处转移，全身各主要器官功能良好，无明显手术及麻醉禁忌。结合患方有明确手术意愿，诊疗计划如下：拟行腹腔镜胃癌根治术（全胃/远端胃/近端胃根治术，行规范化D2淋巴结清扫）。术后密切关注消化道吻合口愈合及胃肠功能恢复，并根据大病理结果指导下一步综合治疗。',order:10}
+  ]},
+  {id:'c7',name:'MDT-肺癌及肺结节',order:6,items:[
+    {id:'c7-1',name:'肺癌手术-影像学评估',text:'影像科杜光舟副主任医师：胸部增强CT提示___占位，边缘见毛刺、分叶及胸膜牵拉征，病变局限于肺内。纵隔及两肺门未见明确肿大淋巴结，未见远处器官转移迹象。具备手术切除的解剖学条件。',order:0},
+    {id:'c7-2',name:'肺癌手术-病理评估',text:'病理科况丽平主任医师：肺部活检/穿刺病理提示：肺腺癌/鳞癌（或：提示恶性肿瘤细胞，倾向原发性肺癌）。明确恶性诊断。后续待外科行根治性切除后，将进一步明确组织学分型、浸润深度、淋巴结转移情况，并常规行EGFR、ALK、ROS1等驱动基因及PD-L1表达检测，以备术后辅助治疗之需。',order:1},
+    {id:'c7-3',name:'肺癌手术-放疗评估',text:'肿瘤放疗科罗何三副主任医师：结合胸部增强CT，该患者肺部病灶局限，影像评估为可切除局部病变，目前暂无术前新辅助放疗或立体定向放疗（SBRT）指征，同意外科手术治疗。',order:2},
+    {id:'c7-4',name:'肺癌手术-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前未见远处系统性转移，全身基础状况良好（ECOG 0-1分）。根据目前局限性分期评估，暂无全身系统性新辅助化疗、靶向或免疫治疗的绝对指征，支持直接行外科手术切除。术后根据大病理的最终分期结果，再行评估是否需要行辅助靶向或化免治疗。',order:3},
+    {id:'c7-5',name:'肺癌手术-麻醉评估',text:'麻醉科詹银周副主任医师：患者各项常规术前检查未见明确禁忌，心肺储备功能尚可，能耐受术中单肺通气及全麻。ASA分级Ⅱ-Ⅲ级，无麻醉绝对禁忌证，术中将密切监测单肺通气期间的氧合及气道压力。',order:4},
+    {id:'c7-6',name:'肺癌手术-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者肺恶性肿瘤诊断明确，影像提示局部病灶可切除、无远处转移。鉴于病灶局限且无系统性新辅助指征，结合患者意见，诊疗计划如下：拟直接行胸腔镜下肺楔形/肺段/肺叶切除/肺癌根治术。术后密切关注胸腔引流、肺复张及肺部感染预防，并根据大病理结果指导下一步综合治疗。',order:5},
+    {id:'c7-7',name:'肺结节-影像学评估',text:'影像科杜光舟副主任医师：胸部CT提示___见一大小约___mm×___mm的孤立性实性/部分实性/磨玻璃结节，边缘可见毛刺/分叶/胸膜牵拉征/血管穿行征。纵隔及两肺门未见肿大淋巴结。结节具备恶性征象，临床恶性肿瘤可能性大，影像学具备胸腔镜微创探查及切除的解剖条件。',order:6},
+    {id:'c7-8',name:'肺结节-病理评估',text:'病理科况丽平主任医师：患者目前病灶较小/位置较深，术前盲目行经皮肺穿刺活检不仅难度大、阳性率低，且并发症风险较高。赞同暂不进行术前有创穿刺活检，支持直接行外科手术探查。我科将在术中全力配合，行“术中快速冰冻病理检查”，根据冰冻结果明确结节性质，以决定后续外科切除范围。',order:7},
+    {id:'c7-9',name:'肺结节-放疗评估',text:'肿瘤放疗科罗何三副主任医师：鉴于患者目前结节性质待查，缺乏明确的病理学恶性证据，无任何局部立体定向放疗（SBRT）指征。支持外科行胸腔镜下病灶切除以明确诊断及治疗。',order:8},
+    {id:'c7-10',name:'肺结节-肿瘤内科评估',text:'肿瘤内科李绪渊副主任医师：患者当前全身基础状况良好（ECOG 0-1分）。在缺乏明确细胞学或组织病理学恶性证据的前提下，严禁盲目给予任何全身抗肿瘤药物（化疗、靶向或免疫）治疗。赞同首选外科微创手术切除病灶作为明确病理诊断的第一步。',order:9},
+    {id:'c7-11',name:'肺结节-麻醉评估',text:'麻醉科詹银周副主任医师：患者术前心肺功能、血气分析及各项常规生化指标基本正常，心肺储备功能可耐受术中单肺通气。ASA分级Ⅱ-Ⅲ级，无麻醉绝对禁忌证。我科将常规做好双腔支气管插管全麻及术中气道压力控制，确保围术期安全。',order:10},
+    {id:'c7-12',name:'肺结节-MDT总结',text:'傅俊惠主任医师：综合各科室意见，患者肺部高危结节恶性可能大，具备明确手术指征。鉴于术前穿刺风险高、患者及家属手术意愿明确，经多学科讨论，诊疗计划如下：拟行胸腔镜下肺局部/楔形切除术。术中切除结节后送检术中快速冰冻病理：若冰冻提示为良性或不典型腺样增生，则结束手术；若冰冻提示为浸润性恶性肿瘤（腺癌/鳞癌），则一期行胸腔镜下肺段/肺叶切除术+纵隔淋巴结清扫术（肺癌根治术）。',order:11}
+  ]},
+  {id:'c8',name:'外购药品申请',order:7,items:[
+    {id:'c8-1',name:'静注人免疫球蛋白',text:'通用名：静注人免疫球蛋白（pH4）；商品名：静注人免疫球蛋白；规格：2.5g(5%,50ml)/瓶；生产厂家：哈尔滨派斯菲科生物制药股份有限公司；使用理由：输注人免疫球蛋白提高抵抗力。',order:0},
+    {id:'c8-2',name:'人血白蛋白',text:'通用名：人血白蛋白；商品名：人血白蛋白；规格：10g(20%,50ml)/瓶；生产厂家：Biotest Pharma GmbH/德国；使用理由：输注人血白蛋白改善低白蛋白血症。',order:1},
+    {id:'c8-3',name:'注射用奥美拉唑（耐信）',text:'通用名：注射用奥美拉唑；商品名：耐信；规格：40mg/支；生产厂家：阿斯利康制药有限公司；使用理由：患者___，现需制酸治疗，患者要求使用耐信制酸。',order:2},
+    {id:'c8-4',name:'斯鲁利单抗（汉斯状）',text:'通用名：斯鲁利单抗注射液；商品名：汉斯状；规格：100mg(10ml)/瓶；生产厂家：上海复宏汉霖生物制药有限公司；使用理由：诊断___，采用化免治疗，免疫治疗选用斯鲁利单抗注射液效果较好，但院内无药。',order:3},
+    {id:'c8-5',name:'卡度尼利单抗（开坦尼）',text:'通用名：卡度尼利单抗注射液；商品名：开坦尼；规格：125mg(10ml)/瓶；生产厂家：中山康方生物医药有限公司；使用理由：患者新辅助化疗联合免疫治疗，本药品在我院为外购目录，需自行购买。',order:4}
+  ]},
+  {id:'c9',name:'知情同意书',order:8,items:[
+    {id:'c9-1',name:'支气管镜检查',text:'支气管镜检查风险告知：1.麻醉意外；2.喉头水肿、痉挛、窒息；3.咯血；4.肺部感染扩散；5.支气管痉挛、呼吸骤停；6.气胸；7.加重缺氧；8.严重心律失常、心跳骤停；9.血压升高、脑血管意外；10.气管插管意外脱出；11.出血、支气管胸膜瘘、空气栓塞等；12.其他。',order:0},
+    {id:'c9-2',name:'食管癌手术',text:'手术累及器官与风险：心脏、肺、气管、胸导管、喉返神经等胸腔内脏器，肝、胆道、胰腺、脾脏、横结肠、十二指肠、小肠等腹腔内脏器，甲状腺、甲状旁腺、喉上神经等颈部脏器，及其周围血管、神经。本例拟行机器人辅助食管癌根治术，具体吻合部位视术中探查而定。尽管机器人视野精细，但若肿瘤侵犯大血管或胸腹腔严重粘连，仍需中转开胸或开腹。术后可能发生吻合口瘘、乳糜胸、喉返神经损伤（声嘶呛咳）或严重肺部感染，若发生将显著延长住院时间，甚至需转入ICU、行肠内营养支持或二次手术抢救。\n\n替代方案：\n1.根治性放化疗：免除手术创伤，但局部控制率与远期疗效通常不如手术，且有食管狭窄或瘘的风险。\n2.最佳支持治疗：仅对症或行支架/造瘘改善进食，不控制肿瘤，生存期短。',order:1},
+    {id:'c9-3',name:'结肠癌手术',text:'手术累及器官与风险：肝、胆道、胰腺、十二指肠、小肠、右侧输尿管、右侧生殖血管、下腔静脉神经等腹腔内脏器及周围其他血管、神经。本例拟行结肠癌根治术（半结肠或切除术）。术中精细游离病变肠段、清扫区域淋巴结并进行肠道吻合重建。若术中发现肿瘤浸润周围大血管、严密粘连或解剖不清，为保障安全需立即中转开腹。术后核心风险包括吻合口瘘、腹腔内出血或感染（腹膜炎），一旦发生将导致住院时间显著延长，需禁食、行腹腔引流，严重时需转入ICU或紧急二次手术造瘘抢救。\n\n替代方案：\n1.结肠支架植入/姑息性造瘘：仅解决肠梗阻症状，不切除肿瘤，远期生存差。\n2.单纯化疗或放化疗：适用于晚期或无法耐受手术者，疗效通常不如手术彻底。\n3.最佳支持治疗：仅对症止痛、营养支持，不控制肿瘤进展。',order:2},
+    {id:'c9-4',name:'直肠癌手术',text:'手术累及器官与风险：【男】精囊腺、【女】子宫、附件；输尿管、膀胱、回盲部结肠、小肠、髂血管、骶前血管、盆腔神经丛等盆腹腔脏器及周围其他血管、神经。本例拟行直肠癌根治术，术中根据肿瘤距肛门距离决定保留肛门或行永久性造瘘（Miles术式）。术中如遇大出血或严重粘连需中转开腹。由于直肠位置紧邻盆腔神经与周围脏器，术后存在吻合口瘘、盆腔感染及大出血风险，且可能出现不同程度的排尿障碍与性功能障碍，严重吻合口瘘需转ICU或二次手术切除吻合口改行造瘘。\n\n替代方案：\n1.新辅助放化疗后序贯手术：适用于进展期患者，先放化疗降期再行手术。\n2.根治性放化疗/单纯化疗：适用于拒绝手术或无法耐受者，远期局部控制率不如手术。\n3.姑息性造瘘/支架或最佳支持治疗：仅解除梗阻、对症止痛，不控制肿瘤进展。',order:3},
+    {id:'c9-5',name:'胃癌手术',text:'手术累及器官与风险：肝、胆道、胰腺、脾脏、结肠、十二指肠、小肠等腹腔内脏器及其周围血管、神经。拟行胃癌根治术（胃大部或全胃切除术）。若术中发现肿瘤浸润胰腺、大血管或腹腔严重粘连，需立即中转开腹。术后核心风险包括吻合口瘘、十二指肠残端瘘、术后胃瘫、腹腔内出血或重症胰腺炎，一旦发生将显著延长住院时间，需长期禁食、胃肠减压，严重时需转入ICU或紧急二次手术抢救。\n\n替代方案：\n1.新辅助化疗后序贯手术：适用于局部进展期患者，先化疗使肿瘤缩小、降期再行手术。\n2.姑息性手术/胃肠短路术/造瘘术：针对伴梗阻但无法切除的晚期患者，仅解决进食问题，不切除肿瘤。\n3.单纯化疗或最佳支持治疗：适用于无法耐受手术的晚期患者，仅控制全身病变或对症支持。',order:4},
+    {id:'c9-6',name:'胃食管结合部癌手术',text:'手术累及器官与风险：肝、胆道、胰腺、脾脏、结肠、十二指肠、小肠等腹腔内脏器及其周围血管、神经。本例拟行胃食管结合部癌根治术，由于手术可能需跨越胸腹两腔，若遇严重粘连或大血管浸润需中转开胸开腹。术后核心风险包括胸腹腔吻合口瘘、纵隔或腹膜炎、乳糜胸、喉返神经损伤（声嘶呛咳）及重症肺炎/ARDS。一旦发生将显著延长住院时间，可能需长期禁食、行引流治疗，严重时需转入ICU或二次手术抢救。\n\n替代方案：\n1.新辅助放化疗/化疗后序贯手术：适用于局部进展期，先综合治疗降期后再行手术，有助于提高切除率。\n2.根治性放化疗或单纯化疗：适用于无法耐受手术或晚期患者，局部控制率和远期疗效通常不如手术。\n3.空肠造瘘/食管支架或最佳支持治疗：针对无法切除的梗阻患者，仅对症解决进食，不控制肿瘤。',order:5},
+    {id:'c9-7',name:'肺癌手术',text:'手术累及器官与风险：心脏、主动脉、肺动静脉及其他大血管、气管及支气管、胸导管、喉返神经等胸腔内脏器及周围其他血管、神经等。若冰冻病理结果提示为肺癌，将进一步行肺癌根治性手术，术中切除肺叶范围及清扫淋巴结范围由术中探查所见决定；【或】因术前已明确肺肿瘤病理性质，本次手术将直接行肺癌根治性手术，术中切除肺叶范围及清扫淋巴结范围由术中探查所见决定。风险条目：1-5、7-12、21、24-29；18。\n\n替代方案：保守观察/放化疗。一旦肿瘤为恶性将导致延误治疗，严重时危及生命；远期治疗效果不如手术治疗。',order:6},
+    {id:'c9-8',name:'肝癌手术',text:'手术累及器官与风险：胆管、门静脉、胰腺、胃、十二指肠、脾脏、结肠、小肠、右肾、右输尿管、右侧生殖血管、下腔静脉等腹腔内脏器及周围其他血管、神经。补充说明：术中视具体情况可能需切除胆囊；术中肝脏具体切除范围由术中探查所见决定；术后可能出现胆汁瘘、梗阻性黄疸、胰腺炎、肝功能衰竭等并发症，或出现凝血功能异常、低蛋白血症、腹水、肝性脑病等肝功能损害相关并发症。风险条目：1-5、7、8、15、24-28；13。\n\n替代方案：放化疗、介入治疗等；远期治疗效果不如手术治疗。',order:7}
+  ]},
+  {id:'c10',name:'参考信息',order:9,items:[
+    {id:'c10-1',name:'MDT科室列表',text:'MDT多学科会诊参与科室：食管胃肠肿瘤外科、肿瘤放疗科、肿瘤内科、医学影像科、病理科、麻醉科、内镜中心、超声介入科。',order:0}
   ]}
 ]}
 
@@ -980,124 +1037,22 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // ==================== Service Worker ====================
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
 
-// ==================== Login System ====================
-var LOGIN_KEY='qrlib_login_v1';
-var SESSION_KEY='qrlib_session_v1';
-
-function hashStr(s){
-  var h=0,i;for(i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return 'sha2_'+Math.abs(h).toString(36)+'_'+s.length.toString(36);
-}
-
-function getLoginData(){
-  try{return JSON.parse(localStorage.getItem(LOGIN_KEY))||{}}catch(e){return{}}
-}
-
-function saveLoginData(d){localStorage.setItem(LOGIN_KEY,JSON.stringify(d))}
-
-function isFirstRun(){var d=getLoginData();return !d.user||!d.passHash}
-
-function checkLogin(user,pass){
-  var d=getLoginData();
-  return d.user===user && d.passHash===hashStr(pass);
-}
-
-function setupLogin(user,pass){
-  saveLoginData({user:user,passHash:hashStr(pass)});
-  sessionStorage.setItem(SESSION_KEY,'1');
-  enterMainApp();
-}
-
-function doLogin(user,pass){
-  if(checkLogin(user,pass)){
-    sessionStorage.setItem(SESSION_KEY,'1');
-    enterMainApp();
-  }else{
-    document.getElementById('loginError').textContent='账户名或密码错误，请重试';
-    document.getElementById('loginUser').classList.add('error');
-    document.getElementById('loginPass').classList.add('error');
-  }
-}
-
-function enterMainApp(){
-  document.getElementById('page-login').classList.remove('active');
-  navBack.classList.remove('visible');
-  navTitle.textContent='病历书写助手';
-  document.getElementById('navSearchBtn').classList.remove('visible');
-  // Check PIN lock
-  var sp=localStorage.getItem(PIN_KEY);
-  if(sp){pinSaved=sp;pinStep='verify';pinInput='';pinConfirm='';resetPinUI();document.getElementById('pinTitle').textContent='输入访问密码';document.getElementById('pinSub').textContent='输入4位数字密码';document.getElementById('pinOverlay').classList.add('active')}
-  renderL1();goTo(pageL1,'病历书写助手',false);
-  addBtn.classList.add('visible');
-}
-
-function initLogin(){
-  if(sessionStorage.getItem(SESSION_KEY)){enterMainApp();return}
-  var d=getLoginData();
-  var userEl=document.getElementById('loginUser');
-  var passEl=document.getElementById('loginPass');
-  var btnEl=document.getElementById('loginBtn');
-  var errEl=document.getElementById('loginError');
-  var hintEl=document.getElementById('loginSetupHint');
-  var titleEl=document.getElementById('loginTitle');
-
-  if(isFirstRun()){
-    titleEl.textContent='设置账户密码';
-    userEl.placeholder='设置账户名';
-    passEl.placeholder='设置密码';
-    btnEl.textContent='设 置';
-    hintEl.style.display='block';
-    hintEl.textContent='首次使用，请设置账户名和密码。\n请妥善保管，密码不可找回。';
-    errEl.textContent='';
-    btnEl.onclick=function(){
-      var user=userEl.value.trim();
-      var pass=passEl.value;
-      if(!user){errEl.textContent='请输入账户名';return}
-      if(!pass||pass.length<4){errEl.textContent='密码长度至少4位';return}
-      setupLogin(user,pass);
-    };
-  }else{
-    titleEl.textContent='病历书写助手';
-    userEl.placeholder='请输入账户名';
-    passEl.placeholder='请输入密码';
-    btnEl.textContent='登 录';
-    hintEl.style.display='none';
-    errEl.textContent='';
-    btnEl.onclick=function(){
-      var user=userEl.value.trim();
-      var pass=passEl.value;
-      if(!user||!pass){errEl.textContent='请输入账户名和密码';return}
-      doLogin(user,pass);
-    };
-    userEl.addEventListener('input',function(){userEl.classList.remove('error');passEl.classList.remove('error');errEl.textContent=''});
-    passEl.addEventListener('input',function(){userEl.classList.remove('error');passEl.classList.remove('error');errEl.textContent=''});
-    passEl.addEventListener('keydown',function(e){if(e.key==='Enter')btnEl.click()});
-  }
-  document.getElementById('page-login').classList.add('active');
-  pageL1.classList.remove('active');
+// ==================== Disclaimer ====================
+var DISCLAIMER_KEY='qrlib_disclaimer_v1';
+if(!localStorage.getItem(DISCLAIMER_KEY)){
+  document.getElementById('disclaimerModal').classList.add('open');
+  document.getElementById('disclaimerAccept').addEventListener('click',function(){
+    localStorage.setItem(DISCLAIMER_KEY,'1');
+    document.getElementById('disclaimerModal').classList.remove('open');
+  });
 }
 
 // ==================== Temp: Split & QR ====================
 function splitText(text,maxLen){maxLen=maxLen||200;var chunks=[];var remain=text;while(remain.length>maxLen){var cut=maxLen;var p=remain.lastIndexOf('。',maxLen);if(p>maxLen*0.5)cut=p+1;else{var s=remain.lastIndexOf('；',maxLen);if(s>maxLen*0.5)cut=s+1;else{var n=remain.lastIndexOf('\n',maxLen);if(n>maxLen*0.5)cut=n+1}}chunks.push(remain.slice(0,cut).trim());remain=remain.slice(cut).trim()}if(remain)chunks.push(remain);return chunks}
 
-function normalizeText(t){
-  // Merge consecutive blank lines (>2 -> 1)
-  t=t.replace(/\n{3,}/g,'\n\n');
-  // Trim trailing whitespace on each line
-  t=t.split('\n').map(function(l){return l.trim()}).join('\n');
-  // Half-width to full-width punctuation
-  t=t.replace(/,/g,'，').replace(/\./g,'。').replace(/;/g,'；')
-     .replace(/:/g,'：').replace(/!/g,'！').replace(/\?/g,'？')
-     .replace(/\(/g,'（').replace(/\)/g,'）');
-  // Normalize number-unit spacing: "38.5 ℃" -> "38.5℃"
-  t=t.replace(/(\d)\s+(℃|°C|mg|g|mL|L|mm|cm|m|kg|h|d|min|s)/g,'$1$2');
-  // Trim leading/trailing whitespace
-  return t.trim();
-}
-
 var tempChunks=[],tempChunkIdx=0,tempOrigText='';
 function renderTempQR(chunks,fullText){
   tempChunks=chunks;tempChunkIdx=0;tempOrigText=fullText||'';
-  stopAutoAdvance();
   document.getElementById('tempQrHint').textContent='此二维码含医疗文本，使用后请关闭页面';
   showTempChunk();
   var splitNav=document.getElementById('splitNav');
@@ -1105,9 +1060,6 @@ function renderTempQR(chunks,fullText){
   document.getElementById('splitIndicator').textContent=chunks.length>1?'Part 1 / '+chunks.length:'';
   document.getElementById('splitPrev').disabled=true;
   document.getElementById('splitNext').disabled=chunks.length<2;
-  var ar=document.getElementById('autoAdvanceRow');
-  if(chunks.length>1){ar.style.display='flex';document.getElementById('autoAdvanceToggle').classList.remove('on');document.getElementById('autoAdvanceLabel').textContent='扫码后自动切换下一张'}
-  else{ar.style.display='none';stopAutoAdvance()}
 }
 function showTempChunk(){
   var chunk=tempChunks[tempChunkIdx];
@@ -1211,49 +1163,11 @@ function initTempOCR(){
       if(t.trim()){editor.value=t;toast('\u5df2\u7c98\u8d34 '+t.length+'\u5b57')}else{toast('\u526a\u8d34\u677f\u4e3a\u7a7a')}
     }).catch(function(){toast('\u65e0\u6cd5\u8bbf\u95ee\u526a\u8d34\u677f\uff0c\u8bf7\u624b\u52a8\u957f\u6309\u7c98\u8d34')});
   });
-  document.getElementById('ocrNormalize').addEventListener('click',function(){
-    var txt=editor.value;if(!txt.trim()){toast('\u65e0\u6587\u5b57\u53ef\u89c4\u8303\u5316');return}
-    editor.value=normalizeText(txt);toast('\u5df2\u89c4\u8303\u5316');
-  });
   document.getElementById('ocrGenerate').addEventListener('click',function(){
     var txt=editor.value.trim();if(!txt){toast('\u8bf7\u5148\u7c98\u8d34\u6216\u624b\u52a8\u8f93\u5165\u6587\u5b57');return}
     var chunks=splitText(txt);renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'\u4e34\u65f6\u4e8c\u7ef4\u7801',true);
   });
-  // Tesseract.js OCR for non-iOS platforms
-  if(!detectIOS()){
-    var autoBtn=document.getElementById('ocrAutoBtn');
-    autoBtn.style.display='inline-block';
-    autoBtn.addEventListener('click',function(){
-      if(!canvas.width){toast('\u8bf7\u5148\u62cd\u7167');return}
-      autoBtn.textContent='\u52a0\u8f7d\u4e2d...';autoBtn.disabled=true;
-      loadTesseract(function(T){
-        autoBtn.textContent='\u8bc6\u522b\u4e2d...';
-        T.recognize(canvas,'chi_sim+eng').then(function(r){
-          editor.value=r.data.text;autoBtn.textContent='\u81ea\u52a8\u8bc6\u522b';autoBtn.disabled=false;
-          toast('\u8bc6\u522b\u5b8c\u6210: '+r.data.text.length+' \u5b57');
-        }).catch(function(e){
-          autoBtn.textContent='\u81ea\u52a8\u8bc6\u522b';autoBtn.disabled=false;
-          toast('\u8bc6\u522b\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5');
-        });
-      });
-    });
-  }
 }
-
-function detectIOS(){
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-}
-
-function loadTesseract(cb){
-  if(window.Tesseract){cb(window.Tesseract);return}
-  var s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-  s.onload=function(){toast('OCR\u5f15\u64ce\u5df2\u5c31\u7eea');cb(window.Tesseract)};
-  s.onerror=function(){toast('OCR\u5f15\u64ce\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc');document.getElementById('ocrAutoBtn').disabled=false;document.getElementById('ocrAutoBtn').textContent='\u81ea\u52a8\u8bc6\u522b'};
-  document.head.appendChild(s);
-}
-
-// ==================== Temp: Voice ====================
 
 // ==================== Temp: Voice ====================
 var recognition=null,voiceActive=false,voiceFinal='';
@@ -1276,10 +1190,6 @@ function initTempVoice(){
     else{recognition.stop();stopVoiceUI()}
   });
   document.getElementById('voiceClear').addEventListener('click',function(){editor.value='';voiceFinal='';status.textContent='已清除，点击重新录音'});
-  document.getElementById('voiceNormalize').addEventListener('click',function(){
-    var txt=editor.value;if(!txt.trim()){toast('无文字可规范化');return}
-    editor.value=normalizeText(txt);toast('已规范化');
-  });
   document.getElementById('voiceGenerate').addEventListener('click',function(){
     var txt=editor.value.trim();if(!txt){toast('请先录音或手动输入文字');return}
     var chunks=splitText(txt);renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'临时二维码',true);
@@ -1287,285 +1197,10 @@ function initTempVoice(){
 }
 function stopVoiceUI(){voiceActive=false;var btn=document.getElementById('voiceBtn');btn.classList.remove('recording','voice-pulse');document.getElementById('voiceStatus').textContent='点击开始录音'}
 
-// ==================== Auto-advance Timer ====================
-var autoAdvanceTimer=null,autoAdvanceActive=false;
-function stopAutoAdvance(){autoAdvanceActive=false;if(autoAdvanceTimer){clearTimeout(autoAdvanceTimer);autoAdvanceTimer=null}}
-document.getElementById('autoAdvanceToggle').addEventListener('click',function(){
-  if(autoAdvanceActive){stopAutoAdvance();this.classList.remove('on');document.getElementById('autoAdvanceLabel').textContent='扫码后自动切换下一张'}
-  else{autoAdvanceActive=true;this.classList.add('on');document.getElementById('autoAdvanceLabel').textContent='自动切换中... 点击停止';advanceLoop()}
-});
-function advanceLoop(){
-  if(!autoAdvanceActive)return;
-  autoAdvanceTimer=setTimeout(function(){
-    if(tempChunkIdx<tempChunks.length-1){tempChunkIdx++;showTempChunk();advanceLoop()}
-    else{stopAutoAdvance();document.getElementById('autoAdvanceToggle').classList.remove('on');document.getElementById('autoAdvanceLabel').textContent='已完成全部切换'}
-  },4000);
-}
-
-// ==================== PIN Lock ====================
-var pinInput='',pinStep='verify',pinSaved='',pinConfirm='';
-var savedPin=localStorage.getItem(PIN_KEY);
-if(!savedPin){
-  pinStep='setup';document.getElementById('pinTitle').textContent='设置访问密码';
-  document.getElementById('pinSub').textContent='输入4位数字密码';
-}else{pinSaved=savedPin}
-function resetPinUI(){
-  document.querySelectorAll('.pin-dot').forEach(function(d){d.classList.remove('filled')});
-}
-document.querySelectorAll('.pin-key').forEach(function(k){
-  k.addEventListener('click',function(){
-    var key=this.dataset.key;
-    if(key==='del'){pinInput=pinInput.slice(0,-1);resetPinUI();for(var i=0;i<pinInput.length;i++)document.querySelectorAll('.pin-dot')[i].classList.add('filled');return}
-    if(key==='ok'){
-      if(pinStep==='change'){
-        if(pinInput.length!==4){document.getElementById('pinSub').textContent='请输入4位数字';resetPinUI();return}
-        if(pinInput!==pinSaved){pinInput='';resetPinUI();document.getElementById('pinSub').textContent='当前密码错误，请重试';return}
-        pinStep='setup';pinInput='';pinConfirm='';pinSaved='';resetPinUI();
-        document.getElementById('pinTitle').textContent='设置新密码';document.getElementById('pinSub').textContent='输入新的4位数字密码';return;
-      }
-      if(pinStep==='setup'){
-        if(pinInput.length!==4){document.getElementById('pinSub').textContent='请输入4位数字';resetPinUI();return}
-        if(!pinConfirm){pinConfirm=pinInput;resetPinUI();document.getElementById('pinTitle').textContent='确认访问密码';document.getElementById('pinSub').textContent='再次输入4位数字密码';return}
-        if(pinInput!==pinConfirm){pinInput='';pinConfirm='';resetPinUI();document.getElementById('pinTitle').textContent='设置访问密码';document.getElementById('pinSub').textContent='两次密码不一致，重新输入';return}
-        localStorage.setItem(PIN_KEY,pinInput);pinSaved=pinInput;
-        document.getElementById('pinOverlay').classList.remove('active');toast('访问密码已设置');return;
-      }
-      if(pinInput===pinSaved){document.getElementById('pinOverlay').classList.remove('active')}
-      else{pinInput='';document.getElementById('pinSub').textContent='密码错误，请重试';resetPinUI()}
-      return;
-    }
-    if(pinInput.length>=4)return;
-    pinInput+=key;resetPinUI();
-    for(var i=0;i<pinInput.length;i++)document.querySelectorAll('.pin-dot')[i].classList.add('filled');
-    if(pinInput.length===4&&pinStep==='setup'&&pinConfirm){setTimeout(function(){document.querySelector('.pin-key[data-key="ok"]').click()},200)}
-  });
-});
-
-// ==================== File Import ====================
-var fileImportInput=document.createElement('input');
-fileImportInput.type='file';fileImportInput.accept='.txt,.json,.pdf,text/*';fileImportInput.style.display='none';
-document.body.appendChild(fileImportInput);
-fileImportInput.addEventListener('change',function(){
-  var file=this.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var txt=e.target.result;if(!txt.trim()){toast('文件为空');return}
-    // Check for batch delimiter
-    var parts=txt.split(/\n\s*[-—]{3,}\s*\n|\n\s*#{3,}\s*\n/);
-    if(parts.length>1){
-      parts=parts.map(function(p){return p.trim()}).filter(function(p){return p.length>0});
-      showBatchImportModal(parts);
-      return;
-    }
-    var MAX_PREVIEW=2000;
-    if(txt.length<=MAX_PREVIEW){
-      var editor=document.getElementById('ocrEditor');
-      editor.value=txt;toast('已加载: '+txt.length+'字');
-      goTo(document.getElementById('page-temp-ocr'),'文件导入',true);
-    }else{
-      var chunks=splitText(txt);tempLastInput='file';
-      renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'文件导入',true);
-      toast('共 '+txt.length+' 字 → '+chunks.length+' 个QR码');
-    }
-  };
-  reader.readAsText(file);
-});
-
-function showBatchImportModal(parts){
-  var d=load();if(d.categories.length===0){toast('请先创建分类');return}
-  var h='<div class="modal-header"><h2>批量导入 '+parts.length+' 个模板</h2><button class="modal-close-btn" id="batchClose">&times;</button></div>';
-  h+='<div style="margin-bottom:8px;color:#888;font-size:12px">选择目标分类：</div>';
-  d.categories.forEach(function(cat){
-    h+='<div class="settings-item batch-cat-sel" data-cid="'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>';
-  });
-  h+='<div class="settings-item batch-cat-sel" data-cid="__new__" style="cursor:pointer;border:dashed 1px #555"><span>+ 新建分类</span></div>';
-  h+='<div class="batch-target-hint" style="color:#7c8aff;font-size:12px;margin:4px 0;display:none" id="batchHint">请先选择目标分类</div>';
-  h+='<div style="max-height:280px;overflow-y:auto;margin-top:8px">';
-  parts.forEach(function(p,i){
-    var firstLine=p.split('\n')[0].substring(0,40);
-    h+='<label class="settings-item" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">';
-    h+='<input type="checkbox" class="batch-check" data-idx="'+i+'" checked style="margin-top:6px;flex-shrink:0">';
-    h+='<div style="min-width:0"><div style="font-size:13px;color:#e0e0e0">'+escHtml(firstLine)+'</div><div style="font-size:11px;color:#888">'+p.length+' 字</div></div>';
-    h+='</label>';
-  });
-  h+='</div>';
-  h+='<button class="btn" id="batchCreateBtn" style="width:100%;margin-top:12px;background:#7c8aff">批量创建</button>';
-  document.getElementById('settingsContent').innerHTML=h;
-  document.getElementById('settingsModal').classList.add('open');
-  var selectedCatId=null;
-  document.getElementById('batchClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
-  document.querySelectorAll('.batch-cat-sel').forEach(function(el){
-    el.addEventListener('click',function(){
-      document.querySelectorAll('.batch-cat-sel').forEach(function(e){e.style.background=''});
-      el.style.background='rgba(124,138,255,.2)';
-      if(this.dataset.cid==='__new__'){
-        var name=prompt('输入新分类名称');if(!name||!name.trim())return;
-        var nd=load();nd.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:nd.categories.length,items:[]});
-        save(nd);selectedCatId=nd.categories[nd.categories.length-1].id;
-      }else{selectedCatId=this.dataset.cid}
-      document.getElementById('batchHint').style.display='none';
-    });
-  });
-  document.getElementById('batchCreateBtn').addEventListener('click',function(){
-    if(!selectedCatId){document.getElementById('batchHint').style.display='block';return}
-    var selectedIdxs=[];
-    document.querySelectorAll('.batch-check:checked').forEach(function(cb){selectedIdxs.push(parseInt(cb.dataset.idx))});
-    if(selectedIdxs.length===0){toast('请至少选择一个模板');return}
-    var nd=load();var cat=nd.categories.find(function(c){return c.id===selectedCatId});if(!cat)return;
-    selectedIdxs.forEach(function(i){
-      var p=parts[i];var firstLine=p.split('\n')[0].trim().substring(0,60);
-      cat.items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'_'+i,name:firstLine,text:p,order:cat.items.length});
-    });
-    save(nd);document.getElementById('settingsModal').classList.remove('open');
-    renderL1();toast('已批量导入 '+selectedIdxs.length+' 个模板');
-  });
-}
-document.getElementById('btnFileImport').addEventListener('click',function(){tempLastInput='file';fileImportInput.click()});
-
 // ==================== Init ====================
-ensureFavCat();
 initTempOCR();initTempVoice();
-initLogin();
-var params=new URLSearchParams(window.location.search);var q=params.get('q');if(q){setTimeout(function(){siriSearch(q)},500)}
-
-// ==================== Built-in Search ====================
-(function(){
-var searchCancel=document.getElementById('searchCancel');
-var nameSearchInput=document.getElementById('nameSearchInput');
-var contentSearchInput=document.getElementById('contentSearchInput');
-var searchWrap=document.getElementById('searchWrap');
-var navSearchBtn=document.getElementById('navSearchBtn');
-var searchResults=[];
-var lastSearchQuery='';
-var lastContentQuery='';
-
-window._searchRerun=function(){
-  if(lastSearchQuery||lastContentQuery){
-    searchWrap.classList.add('open');
-    nameSearchInput.value=lastSearchQuery||'';
-    contentSearchInput.value=lastContentQuery||'';
-    if(lastSearchQuery)doSearch(lastSearchQuery);
-    if(lastContentQuery)doContentSearch(lastContentQuery);
-  }
-};
-
-window._clearSearch=function(){
-  searchWrap.classList.remove('open');
-  nameSearchInput.value='';
-  contentSearchInput.value='';
-  searchResults=[];
-  lastSearchQuery='';
-  lastContentQuery='';
-  isSearchMode=false;
-};
-
-function doSearch(q){
-  if(!q){searchResults=[];lastSearchQuery='';renderSearchMode();return}
-  lastSearchQuery=q;
-  var data=load();
-  searchResults=[];
-  data.categories.forEach(function(cat){
-    cat.items.forEach(function(item){
-      if(item.name.toLowerCase().indexOf(q.toLowerCase())!==-1){
-        searchResults.push({catName:cat.name,catId:cat.id,itemId:item.id,itemName:item.name,text:item.text,source:'name'});
-      }
-    });
-  });
-  renderSearchResults(q,'名称');
-}
-
-function doContentSearch(q){
-  if(!q){searchResults=[];lastContentQuery='';renderSearchMode();return}
-  lastContentQuery=q;
-  var data=load();
-  searchResults=[];
-  data.categories.forEach(function(cat){
-    cat.items.forEach(function(item){
-      var idx=item.text.toLowerCase().indexOf(q.toLowerCase());
-      if(idx!==-1){
-        var ctx=item.text.substring(Math.max(0,idx-12),Math.min(item.text.length,idx+q.length+12));
-        if(idx>12)ctx='...'+ctx;
-        if(idx+q.length+12<item.text.length)ctx=ctx+'...';
-        searchResults.push({catName:cat.name,catId:cat.id,itemId:item.id,itemName:item.name,text:item.text,source:'content',context:ctx});
-      }
-    });
-  });
-  renderSearchResults(q,'内容');
-}
-
-function renderSearchMode(){
-  var nq=nameSearchInput.value.trim();
-  var cq=contentSearchInput.value.trim();
-  var activeQ=nq||cq;
-  if(!activeQ){
-    window._clearSearch();
-    if(currentCatId){renderL2(currentCatId);addBtn.classList.add('visible')}
-    else{renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible')}
-    return;
-  }
-  isSearchMode=true;
-  itemGrid.style.display='grid';
-}
-
-function renderSearchResults(q,type){
-  if(searchResults.length===0){
-    itemGrid.innerHTML='<div class="empty-state">未找到'+type+'包含 &quot;'+escHtml(q)+'&quot; 的模板</div>';
-  }else{
-    isSearchMode=true;
-    itemGrid.innerHTML='';
-    itemGrid.style.gridTemplateColumns=searchResults.length===1?'1fr':'1fr 1fr';
-    itemGrid.style.maxWidth=searchResults.length===1?'200px':'';
-    itemGrid.style.margin=searchResults.length===1?'0 auto':'';
-    searchResults.forEach(function(r,idx){
-      var card=document.createElement('div');card.className='item-card';
-      card.style.backgroundColor='hsl(220,40%,35%)';
-      card.setAttribute('data-sidx',idx);
-      var nameEl=document.createElement('div');nameEl.className='item-name';nameEl.textContent=r.itemName;
-      var metaEl=document.createElement('div');metaEl.className='item-meta';
-      metaEl.textContent=r.catName+' · '+r.text.length+'字'+(r.context?' · '+escHtml(r.context):'');
-      card.appendChild(nameEl);card.appendChild(metaEl);
-      itemGrid.appendChild(card);
-    });
-    addBtn.classList.remove('visible');
-  }
-}
-
-navSearchBtn.addEventListener('click',function(){
-  if(pageL1.classList.contains('active')){
-    goTo(pageL2,'搜索模板',true);
-    addBtn.classList.remove('visible');
-    isSearchMode=true;
-  }
-  searchWrap.classList.add('open');
-  nameSearchInput.focus();
-  if(lastSearchQuery){nameSearchInput.value=lastSearchQuery;doSearch(lastSearchQuery)}
-  if(lastContentQuery){contentSearchInput.value=lastContentQuery;doContentSearch(lastContentQuery)}
-});
-
-searchCancel.addEventListener('click',function(){
-  window._clearSearch();
-  if(currentCatId){renderL2(currentCatId);addBtn.classList.add('visible')}
-  else{renderL1();goTo(pageL1,'病历书写助手',false);addBtn.classList.add('visible')}
-});
-
-nameSearchInput.addEventListener('input',function(){
-  doSearch(this.value.trim());
-});
-contentSearchInput.addEventListener('input',function(){
-  doContentSearch(this.value.trim());
-});
-
-// Click handler for search results (delegated on itemGrid)
-itemGrid.addEventListener('click',function(e){
-  var card=e.target.closest('.item-card');
-  if(!card||!isSearchMode)return;
-  var idx=parseInt(card.getAttribute('data-sidx'));
-  if(isNaN(idx)||idx>=searchResults.length)return;
-  var r=searchResults[idx];
-  currentCatId=r.catId;currentItemId=r.itemId;
-  renderL3(r.catId,r.itemId);goTo(pageL3,r.itemName,true);
-});
-})();
+renderL1();
+var params=new URLSearchParams(window.location.search);var q=params.get('q');if(q){setTimeout(function(){siriSearch(q)},300)}
 
 // Split nav buttons
 document.getElementById('splitPrev').addEventListener('click',function(){if(tempChunkIdx>0){tempChunkIdx--;showTempChunk()}});
