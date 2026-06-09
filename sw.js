@@ -1,4 +1,4 @@
-var CACHE='qrlib-v8';
+var CACHE='qrlib-v9';
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(['/'])}));
   self.skipWaiting();
