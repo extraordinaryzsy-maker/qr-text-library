@@ -359,6 +359,19 @@ function showRecoveryForm(){
   }
 }
 
+function showRecoveryForUser(){
+  var rd=getRecoveryData();
+  if(!rd.question){toast('未设置密保问题，无法找回用户名。请清除浏览器数据后重新注册。');return}
+  var answer=prompt('密保问题：'+rd.question+'\n请输入您的答案：');
+  if(!answer||!answer.trim())return;
+  if(answer.trim()===rd.answer){
+    var d=getLoginData();
+    alert('您的账户名是：'+d.user+'\n请妥善保管。');
+  }else{
+    toast('答案错误，无法找回用户名');
+  }
+}
+
 function initLogin(){
   if(sessionStorage.getItem(LOGIN_SESSION_KEY)){
     enterAppAfterLogin();
@@ -402,14 +415,24 @@ function initLogin(){
     errEl.textContent='';
 
     if(!document.getElementById('forgotLink')){
-      var forgotLink=document.createElement('a');
-      forgotLink.id='forgotLink';
-      forgotLink.style.cssText='display:block;color:#666;font-size:12px;margin-top:8px;cursor:pointer;text-decoration:underline;text-align:center';
-      forgotLink.textContent='忘记密码？';
-      forgotLink.onclick=function(e){e.preventDefault();showRecoveryForm()};
-      btnEl.parentNode.insertBefore(forgotLink,btnEl.nextSibling);
+      var forgotDiv=document.createElement('div');
+      forgotDiv.id='forgotDiv';
+      forgotDiv.style.cssText='display:flex;justify-content:center;gap:16px;margin-top:8px';
+      var forgotUser=document.createElement('a');
+      forgotUser.id='forgotUserLink';
+      forgotUser.style.cssText='color:#666;font-size:12px;cursor:pointer;text-decoration:underline';
+      forgotUser.textContent='忘记用户名？';
+      forgotUser.onclick=function(e){e.preventDefault();showRecoveryForUser()};
+      var forgotPass=document.createElement('a');
+      forgotPass.id='forgotLink';
+      forgotPass.style.cssText='color:#666;font-size:12px;cursor:pointer;text-decoration:underline';
+      forgotPass.textContent='忘记密码？';
+      forgotPass.onclick=function(e){e.preventDefault();showRecoveryForm()};
+      forgotDiv.appendChild(forgotUser);
+      forgotDiv.appendChild(forgotPass);
+      btnEl.parentNode.insertBefore(forgotDiv,btnEl.nextSibling);
     }else{
-      document.getElementById('forgotLink').style.display='block';
+      document.getElementById('forgotDiv').style.display='flex';
     }
 
     btnEl.onclick=function(){
