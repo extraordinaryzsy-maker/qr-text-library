@@ -173,6 +173,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f0f1a;color:#e0
     <div class="temp-buttons">
       <button class="temp-btn" id="btnOcr"><span class="temp-btn-icon">&#x1F4F7;</span>拍照识别</button>
       <button class="temp-btn" id="btnVoice"><span class="temp-btn-icon">&#x1F3A4;</span>语音输入</button>
+      <button class="temp-btn" id="btnFileImport"><span class="temp-btn-icon">&#x1F4C4;</span>文件导入</button>
     </div>
   </div>
   <div class="temp-label">常用模板</div>
@@ -480,6 +481,7 @@ navBack.addEventListener('click',function(){
   }else if(document.getElementById('page-temp-qr').classList.contains('active')){
     if(tempLastInput==='ocr')goTo(document.getElementById('page-temp-ocr'),'拍照识别',true);
     else if(tempLastInput==='voice')goTo(document.getElementById('page-temp-voice'),'语音输入',true);
+    else if(tempLastInput==='file')goTo(document.getElementById('page-temp-ocr'),'文件导入',true);
     else {goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible')}
   }else if(document.getElementById('page-temp-ocr').classList.contains('active')||document.getElementById('page-temp-voice').classList.contains('active')){
     renderL1();goTo(pageL1,'QR 文本库',false);addBtn.classList.add('visible');
@@ -1122,6 +1124,86 @@ function initTempVoice(){
   });
 }
 function stopVoiceUI(){voiceActive=false;var btn=document.getElementById('voiceBtn');btn.classList.remove('recording','voice-pulse');document.getElementById('voiceStatus').textContent='点击开始录音'}
+
+// ==================== File Import ====================
+var fileImportInput=document.createElement('input');
+fileImportInput.type='file';fileImportInput.accept='.txt,.json,.pdf,text/*';fileImportInput.style.display='none';
+document.body.appendChild(fileImportInput);
+fileImportInput.addEventListener('change',function(){
+  var file=this.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var txt=e.target.result;if(!txt.trim()){toast('文件为空');return}
+    var parts=txt.split(/\n\s*[-—]{3,}\s*\n|\n\s*#{3,}\s*\n/);
+    if(parts.length>1){
+      parts=parts.map(function(p){return p.trim()}).filter(function(p){return p.length>0});
+      showBatchImportModal(parts);
+      return;
+    }
+    var MAX_PREVIEW=2000;
+    if(txt.length<=MAX_PREVIEW){
+      var editor=document.getElementById('ocrEditor');
+      editor.value=txt;toast('已加载: '+txt.length+'字');
+      goTo(document.getElementById('page-temp-ocr'),'文件导入',true);
+    }else{
+      var chunks=splitText(txt);tempLastInput='file';
+      renderTempQR(chunks,txt);goTo(document.getElementById('page-temp-qr'),'文件导入',true);
+      toast('共 '+txt.length+' 字 → '+chunks.length+' 个QR码');
+    }
+  };
+  reader.readAsText(file);
+});
+
+function showBatchImportModal(parts){
+  var d=load();if(d.categories.length===0){toast('请先创建分类');return}
+  var h='<div class="modal-header"><h2>批量导入 '+parts.length+' 个模板</h2><button class="modal-close-btn" id="batchClose">&times;</button></div>';
+  h+='<div style="margin-bottom:8px;color:#888;font-size:12px">选择目标分类：</div>';
+  d.categories.forEach(function(cat){
+    h+='<div class="settings-item batch-cat-sel" data-cid="'+cat.id+'" style="cursor:pointer"><span>'+escHtml(cat.name)+'</span><span style="color:#888;font-size:12px">'+(cat.items?cat.items.length:0)+' 项</span></div>';
+  });
+  h+='<div class="settings-item batch-cat-sel" data-cid="__new__" style="cursor:pointer;border:dashed 1px #555"><span>+ 新建分类</span></div>';
+  h+='<div class="batch-target-hint" style="color:#7c8aff;font-size:12px;margin:4px 0;display:none" id="batchHint">请先选择目标分类</div>';
+  h+='<div style="max-height:280px;overflow-y:auto;margin-top:8px">';
+  parts.forEach(function(p,i){
+    var firstLine=p.split('\n')[0].substring(0,40);
+    h+='<label class="settings-item" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">';
+    h+='<input type="checkbox" class="batch-check" data-idx="'+i+'" checked style="margin-top:6px;flex-shrink:0">';
+    h+='<div style="min-width:0"><div style="font-size:13px;color:#e0e0e0">'+escHtml(firstLine)+'</div><div style="font-size:11px;color:#888">'+p.length+' 字</div></div>';
+    h+='</label>';
+  });
+  h+='</div>';
+  h+='<button class="btn" id="batchCreateBtn" style="width:100%;margin-top:12px;background:#7c8aff">批量创建</button>';
+  document.getElementById('settingsContent').innerHTML=h;
+  document.getElementById('settingsModal').classList.add('open');
+  var selectedCatId=null;
+  document.getElementById('batchClose').onclick=function(){document.getElementById('settingsModal').classList.remove('open')};
+  document.querySelectorAll('.batch-cat-sel').forEach(function(el){
+    el.addEventListener('click',function(){
+      document.querySelectorAll('.batch-cat-sel').forEach(function(e){e.style.background=''});
+      el.style.background='rgba(124,138,255,.2)';
+      if(this.dataset.cid==='__new__'){
+        var name=prompt('输入新分类名称');if(!name||!name.trim())return;
+        var nd=load();nd.categories.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.trim(),order:nd.categories.length,items:[]});
+        save(nd);selectedCatId=nd.categories[nd.categories.length-1].id;
+      }else{selectedCatId=this.dataset.cid}
+      document.getElementById('batchHint').style.display='none';
+    });
+  });
+  document.getElementById('batchCreateBtn').addEventListener('click',function(){
+    if(!selectedCatId){document.getElementById('batchHint').style.display='block';return}
+    var selectedIdxs=[];
+    document.querySelectorAll('.batch-check:checked').forEach(function(cb){selectedIdxs.push(parseInt(cb.dataset.idx))});
+    if(selectedIdxs.length===0){toast('请至少选择一个模板');return}
+    var nd=load();var cat=nd.categories.find(function(c){return c.id===selectedCatId});if(!cat)return;
+    selectedIdxs.forEach(function(i){
+      var p=parts[i];var firstLine=p.split('\n')[0].trim().substring(0,60);
+      cat.items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6)+'_'+i,name:firstLine,text:p,order:cat.items.length});
+    });
+    save(nd);document.getElementById('settingsModal').classList.remove('open');
+    renderL1();toast('已批量导入 '+selectedIdxs.length+' 个模板');
+  });
+}
+document.getElementById('btnFileImport').addEventListener('click',function(){tempLastInput='file';fileImportInput.click()});
 
 // ==================== Init ====================
 initTempOCR();initTempVoice();
